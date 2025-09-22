@@ -1,0 +1,46 @@
+# ===== Core runtime =====
+numpy==1.26.4
+pandas==2.2.3
+pyarrow==17.0.0          # Parquet/Arrow I/O
+python-dateutil==2.9.0.post0
+
+# ===== Config / Validation =====
+pydantic==2.9.2          # FastAPI와 호환되는 v2
+pydantic-settings==2.4.0 # .env + config.yaml 연동 시 편함(선택)
+PyYAML==6.0.2
+python-dotenv==1.0.1
+
+# ===== API client =====
+requests==2.32.3
+tenacity==9.0.0          # 재시도 로직
+
+# ===== FastAPI server =====
+fastapi==0.115.4
+uvicorn[standard]==0.30.6  # uvloop/httptools 포함(슬림에서도 wheel 제공)
+
+# ===== (선택) 모델/수치 라이브러리 —— 나중에 ML 붙일 때 사용 =====
+# lightgbm==4.5.0        # 추후 ML 도입시 활성화
+scikit-learn==1.5.2
+
+# ===== Logging & Debugging =====
+loguru==0.7.2
+icecream==2.1.3          # 디버깅 프린트
+tqdm==4.66.5             # 진행률 표시
+
+# ===== Experiment Tracking =====
+wandb==0.18.5
+
+# ===== CLI Utilities =====
+fire==0.7.0
+
+# ===== (선택) 모니터링/리포트 =====
+# evidently==0.4.31
+
+# ===== (선택) DuckDB를 내부 스토리지로 쓸 경우 =====
+# duckdb==1.1.3
+
+# ===== Dev/Test (배포 이미지엔 보통 포함 안 함) =====
+# pytest==8.3.3
+# ruff==0.6.9
+# mypy==1.11.2
+# types-requests==2.32.0.20240914
