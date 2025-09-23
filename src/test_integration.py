@@ -9,25 +9,25 @@ import numpy as np
 def test_with_yaml_config():
     """YAML 설정 파일과 함께 전체 파이프라인 테스트"""
     
-    # 테스트용 YAML 설정
-    config = {
-        'task': 'regression',
-        'target': 'price',
-        'cv': {
-            'n_splits': 5,
-            'shuffle': True,
-            'random_state': 42
-        },
-        'metrics': {
-            'primary': 'rmse',
-            'others': ['mae', 'r2']
-        },
-        'models': [
-            {'name': 'linear', 'params': {}},
-            {'name': 'ridge', 'params': {'alpha': 1.0}},
-            {'name': 'rf', 'params': {'n_estimators': 50, 'random_state': 42}}
-        ]
-    }
+    try:
+        # 실제 YAML 파일 로드
+        with open('config/models.yaml', 'r', encoding='utf-8') as f:
+            config = yaml.safe_load(f)
+        print("✅ YAML 설정 파일 로드 성공")
+    except FileNotFoundError:
+        print("⚠️  YAML 파일이 없어서 기본 설정 사용")
+        # 백업 설정
+        config = {
+            'task': 'regression',
+            'target': 'price',
+            'cv': {'n_splits': 5, 'shuffle': True, 'random_state': 42},
+            'metrics': {'primary': 'rmse', 'others': ['mae', 'r2']},
+            'models': [
+                {'name': 'linear', 'params': {}},
+                {'name': 'ridge', 'params': {'alpha': 1.0}},
+                {'name': 'rf', 'params': {'n_estimators': 50, 'random_state': 42}}
+            ]
+        }
     
     print("=== YAML 설정과 함께 통합 테스트 ===")
     print(f"Task: {config['task']}")
