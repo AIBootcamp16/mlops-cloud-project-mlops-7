@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  mlops-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./src:/app/src
+      - ./data:/app/data
+    working_dir: /app/src
+    environment:
+      - PYTHONPATH=/app/src
+    entrypoint: []  # ENTRYPOINT 무시
+    command: ["tail", "-f", "/dev/null"]
+    
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./src:/app/src
+      - ./data:/app/data
+    working_dir: /app/src
+    environment:
+      - PYTHONPATH=/app/src
+    entrypoint: []  # ENTRYPOINT 무시
+    command: ["python", "test_integration.py"]

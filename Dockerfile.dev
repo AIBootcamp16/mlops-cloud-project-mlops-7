@@ -8,6 +8,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
       build-essential gcc tzdata curl \
+      fonts-noto-cjk fonts-noto-cjk-extra \
  && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
  && echo $TZ > /etc/timezone \
  && rm -rf /var/lib/apt/lists/*
@@ -22,4 +23,4 @@ RUN python -m pip install --upgrade pip && \
 # 개발용은 소스를 COPY하지 않는다(로컬을 -v로 마운트)
 # data는 로컬 볼륨(-v $(pwd)/data:/app/data)로 사용하는 것을 권장
 
-ENTRYPOINT ["python"]
+CMD ["bash"]
