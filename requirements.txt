@@ -1,46 +1,29 @@
-# ===== Core runtime =====
-numpy==1.26.4
-pandas==2.2.3
-pyarrow==17.0.0          # Parquet/Arrow I/O
-python-dateutil==2.9.0.post0
+# ===== 1단계: API 호출 + S3 저장 필수 라이브러리 =====
 
-# ===== Config / Validation =====
-pydantic==2.9.2          # FastAPI와 호환되는 v2
-pydantic-settings==2.4.0 # .env + config.yaml 연동 시 편함(선택)
-PyYAML==6.0.2
-python-dotenv==1.0.1
+# API 호출
+requests==2.31.0            # 기상청 API HTTP 요청용 (가장 기본적인 HTTP 라이브러리)
+tenacity==8.2.3            # API 재시도/백오프
 
-# ===== API client =====
-requests==2.32.3
-tenacity==9.0.0          # 재시도 로직
+# 데이터 처리
+pandas==2.2.0              # API 응답 데이터를 테이블 형태로 처리 (DataFrame)
+numpy==1.26.3              # pandas 의존성, 수치 연산 (자동 설치되지만 명시)
 
-# ===== FastAPI server =====
-fastapi==0.115.4
-uvicorn[standard]==0.30.6  # uvloop/httptools 포함(슬림에서도 wheel 제공)
+# 파일 포맷
+pyarrow==15.0.0            # Parquet 파일 포맷 지원 (압축률 좋고 S3에 최적)
+s3fs==2024.2.0             # pandas/duckdb → s3:// 직접 읽기/쓰기
 
-# ===== (선택) 모델/수치 라이브러리 —— 나중에 ML 붙일 때 사용 =====
-# lightgbm==4.5.0        # 추후 ML 도입시 활성화
-scikit-learn==1.5.2
+# AWS S3 연동
+boto3==1.34.25             # AWS SDK - S3 업로드/다운로드
+botocore==1.34.25          # boto3 의존성 (자동 설치되지만 버전 고정)
 
-# ===== Logging & Debugging =====
-loguru==0.7.2
-icecream==2.1.3          # 디버깅 프린트
-tqdm==4.66.5             # 진행률 표시
+# 환경 설정
+python-dotenv==1.0.1       # .env 파일에서 API키, AWS 자격증명 읽기
+pydantic==2.6.1            # (선택) config 타입 안정성
 
-# ===== Experiment Tracking =====
-wandb==0.18.5
+# 설정 파일
+PyYAML==6.0.1              # config.yaml 파일 파싱 (스테이션ID, 설정값 관리)
 
-# ===== CLI Utilities =====
-fire==0.7.0
+# 로깅
+loguru==0.7.2              # 깔끔한 로그 출력 (print 대신 사용, 파일 로깅 가능)
 
-# ===== (선택) 모니터링/리포트 =====
-# evidently==0.4.31
 
-# ===== (선택) DuckDB를 내부 스토리지로 쓸 경우 =====
-# duckdb==1.1.3
-
-# ===== Dev/Test (배포 이미지엔 보통 포함 안 함) =====
-# pytest==8.3.3
-# ruff==0.6.9
-# mypy==1.11.2
-# types-requests==2.32.0.20240914

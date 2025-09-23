@@ -90,6 +90,25 @@ weather-mlops/
 ```
 
 <br>
+# 1. main 브랜치로 전환
+git checkout main
+git pull
+
+# 2. 프로덕션 이미지 빌드 (소스코드 포함)
+docker build \
+  --target collector \
+  -t weather-collector:v1.0.0 \
+  -f Dockerfile.multi .
+
+# 3. 테스트
+docker run --env-file .env weather-collector:v1.0.0
+
+# 4. 이미지 레지스트리에 푸시
+docker tag weather-collector:v1.0.0 your-registry/weather-collector:v1.0.0
+docker push your-registry/weather-collector:v1.0.0
+<br>
+
+<br>
 
 ## 💻​ 구현 기능
 ### 기능1
