@@ -1,0 +1,17 @@
+name: "🚀 Feat - Serve/API"
+description: 서빙/엔드포인트 구현
+title: "[SERVE] "
+labels: [feature, serving]
+body:
+  - type: textarea
+    id: goal
+    attributes: {label: 목표(엔드포인트/성능)}
+    validations: {required: true}
+  - type: textarea
+    id: steps
+    attributes:
+      label: 작업
+      value: "- [ ] 엔드포인트 추가\n- [ ] 모델 로드\n- [ ] 헬스체크/로그"
+  - type: textarea
+    id: ac
+    attributes: {label: 완료기준(AC)}
