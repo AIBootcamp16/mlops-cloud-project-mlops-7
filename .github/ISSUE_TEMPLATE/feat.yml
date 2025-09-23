@@ -1,0 +1,17 @@
+name: "✨ Feat"
+description: 일반 기능/구현
+title: "[FEAT] "
+labels: [feature]
+body:
+  - type: textarea
+    id: context
+    attributes: {label: 배경/목표}
+    validations: {required: true}
+  - type: textarea
+    id: checklist
+    attributes:
+      label: 작업
+      value: "- [ ] 구현\n- [ ] 테스트\n- [ ] 문서/README"
+  - type: textarea
+    id: ac
+    attributes: {label: 완료기준(AC)}
