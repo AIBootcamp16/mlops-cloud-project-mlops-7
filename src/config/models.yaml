@@ -1,0 +1,40 @@
+task: regression   # or classification
+target: price      # 타깃 컬럼명
+
+cv:
+  n_splits: 5
+  shuffle: true
+  random_state: 42
+
+metrics:
+  primary: rmse
+  others: [mae, r2]
+
+models:
+  - name: linear
+    params: {}
+  - name: ridge
+    params: {alpha: 1.0}
+  - name: lgbm
+    params:
+      n_estimators: 1000
+      learning_rate: 0.05
+      num_leaves: 31
+      subsample: 0.8
+      colsample_bytree: 0.8
+      n_jobs: -1
+  - name: xgb
+    params:
+      n_estimators: 1000
+      learning_rate: 0.05
+      max_depth: 8
+      subsample: 0.8
+      colsample_bytree: 0.8
+      n_jobs: -1
+  - name: cat
+    params:
+      iterations: 1000
+      depth: 8
+      learning_rate: 0.05
+      loss_function: RMSE
+      verbose: 0

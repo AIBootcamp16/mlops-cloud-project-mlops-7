@@ -1,0 +1,17 @@
+name: "🧠 Feat - Train"
+description: 학습/모델 관련 구현
+title: "[TRAIN] "
+labels: [feature, training]
+body:
+  - type: textarea
+    id: goal
+    attributes: {label: 목표(모델/데이터/지표)}
+    validations: {required: true}
+  - type: textarea
+    id: steps
+    attributes:
+      label: 작업
+      value: "- [ ] 데이터 준비\n- [ ] 학습 스크립트\n- [ ] 검증/지표 로그(MLflow)"
+  - type: textarea
+    id: ac
+    attributes: {label: 완료기준(AC)}
