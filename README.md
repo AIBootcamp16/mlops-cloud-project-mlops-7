@@ -37,42 +37,42 @@ weather-mlops/
 │
 ├─ src/                           # 실제 코드
 │  ├─ data/                       # 데이터 수집 및 전처리
-│  │   ├─ kma_client.py           # 기상청 API 호출 (ASOS/UV/PM 등)
-│  │   ├─ fetch.py                # 여러 API 모듈 통합 호출
-│  │   └─ preprocess.py           # 결측/타입 정리, 구간화 전 준비
+│  │   ├─ kma_client.py           # 기상청 API 호출 (ASOS/UV/PM 등) (구현 예정)
+│  │   ├─ fetch.py                # 여러 API 모듈 통합 호출 (구현 예정)
+│  │   └─ preprocess.py           # 결측/타입 정리, 구간화 전 준비 (구현 예정)
 │  │
 │  ├─ features/                   # 피처 엔지니어링
-│  │   ├─ penalty_rules.py        # 항목별 벌점(HeatPenalty, UVPenalty 등)
-│  │   └─ feature_builder.py      # 모든 피처/벌점 합쳐 DataFrame 생성
+│  │   ├─ penalty_rules.py        # 항목별 벌점(HeatPenalty, UVPenalty 등) (구현 예정)
+│  │   └─ feature_builder.py      # 모든 피처/벌점 합쳐 DataFrame 생성 (구현 예정)
 │  │
 │  ├─ indices/                    # 지수 계산 로직
-│  │   ├─ comfort_index.py        # 불쾌지수 → 쾌적지수 계산 함수
-│  │   └─ weights.yaml            # 가중치 설정(Heat=0.45, UV=0.20 등)
+│  │   ├─ comfort_index.py        # 불쾌지수 → 쾌적지수 계산 함수 (구현 예정)
+│  │   └─ weights.yaml            # 가중치 설정(Heat=0.45, UV=0.20 등) (구현 예정)
 │  │
 │  ├─ serving/                    # 서비스/배포
-│  │   └─ app.py                  # FastAPI 엔드포인트 (/predict)
+│  │   └─ app.py                  # FastAPI 엔드포인트 (/predict) (구현 예정)
 │  │
 │  └─ utils/                      # 공용 유틸
-│      ├─ io.py                   # 데이터 저장/불러오기 (Parquet, CSV 등)
-│      ├─ config.py               # 설정 로더(pydantic/yaml)
-│      └─ logger.py               # 로깅 공통
+│      ├─ io.py                   # 데이터 저장/불러오기 (Parquet, CSV 등) (구현 예정)
+│      ├─ config.py               # 설정 로더(pydantic/yaml) (구현 예정)
+│      └─ logger.py               # 로깅 공통 (구현 예정)
 │
 ├─ conf/
-│  └─ config.yaml                 # API 키, 스테이션ID, 경로 등 공용 설정
+│  └─ config.yaml                 # API 키, 스테이션ID, 경로 등 공용 설정 (구현 예정)
 │
 ├─ tests/                         # 테스트
-│  ├─ test_penalty_rules.py       # 구간화/벌점 함수 단위 테스트
-│  ├─ test_comfort_index.py       # 최종 지수 계산 검증
-│  └─ test_api.py                 # FastAPI 응답 검증
+│  ├─ test_penalty_rules.py       # 구간화/벌점 함수 단위 테스트 (구현 예정)
+│  ├─ test_comfort_index.py       # 최종 지수 계산 검증 (구현 예정)
+│  └─ test_api.py                 # FastAPI 응답 검증 (구현 예정)
 │
 ├─ notebooks/                     # EDA 및 실험용
-│  ├─ eda.ipynb                   # 데이터 탐색
-│  └─ index_experiment.ipynb      # 가중치 실험/시각화
+│  ├─ eda.ipynb                   # 데이터 탐색 (구현 예정)
+│  └─ index_experiment.ipynb      # 가중치 실험/시각화 (구현 예정)
 │
 ├─ .env.example                   # 예시 환경변수(KMA_API_KEY=...)
-├─ requirements.txt               # 의존성
+├─ requirements.txt               # 의존성 
 ├─ README.md                      # 프로젝트 설명/실행법
-├─ Makefile                       # 자주 쓰는 명령어 단축 (fetch, build, serve 등) 너가 짜준 디렉토리 구조는 이거야 여기에 맞는 도커 파일 짜줘
+├─ Makefile                       # 자주 쓰는 명령어 단축 (fetch, build, serve 등) (구현 예정)
 ├─ .gitignore                     
 ├─ Dockerfile                     # 배포용
 ├─ Dockerfile.dev                 # 개발용
