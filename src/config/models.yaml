@@ -17,7 +17,7 @@ models:
     params: {alpha: 1.0}
   - name: lgbm
     params:
-      n_estimators: 1000
+      n_estimators: 500
       learning_rate: 0.05
       num_leaves: 31
       subsample: 0.8
@@ -26,7 +26,7 @@ models:
       verbose: -1
   - name: xgb
     params:
-      n_estimators: 500
+      n_estimators: 100
       learning_rate: 0.05
       max_depth: 8
       subsample: 0.8
@@ -34,7 +34,7 @@ models:
       n_jobs: -1
   - name: cat
     params:
-      iterations: 300
+      iterations: 200
       depth: 8
       learning_rate: 0.05
       loss_function: RMSE
