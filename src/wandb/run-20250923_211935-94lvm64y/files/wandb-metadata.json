@@ -1,0 +1,74 @@
+{
+    "os": "Linux-5.15.167.4-microsoft-standard-WSL2-x86_64-with-glibc2.36",
+    "python": "3.11.13",
+    "heartbeatAt": "2025-09-23T12:19:36.336823",
+    "startedAt": "2025-09-23T12:19:35.682159",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "/app/src/test_evaluate.py",
+    "codePathLocal": "test_evaluate.py",
+    "codePath": "test_evaluate.py",
+    "host": "3ce97ec98354",
+    "username": "root",
+    "executable": "/usr/local/bin/python",
+    "cpu_count": 8,
+    "cpu_count_logical": 8,
+    "cpu_freq": {
+        "current": 3600.0080000000007,
+        "min": 0.0,
+        "max": 0.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 3600.008,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 3600.008,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 3600.008,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 3600.008,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 3600.008,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 3600.008,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 3600.008,
+            "min": 0.0,
+            "max": 0.0
+        },
+        {
+            "current": 3600.008,
+            "min": 0.0,
+            "max": 0.0
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 1006.853931427002,
+            "used": 73.28602600097656
+        }
+    },
+    "memory": {
+        "total": 15.589862823486328
+    }
+}
