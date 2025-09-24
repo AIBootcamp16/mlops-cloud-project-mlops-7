@@ -100,7 +100,7 @@ def get_trained_models_from_integration():
     
     # test_integration.py 실행하여 학습된 모델들과 데이터 가져오기
     import importlib
-    import test_integration
+    import test_integration as test_integration
     importlib.reload(test_integration)  # 모듈 재로드
     
     # 테스트 데이터 생성 (test_integration.py와 동일)
