@@ -26,4 +26,20 @@ PyYAML==6.0.1              # config.yaml 파일 파싱 (스테이션ID, 설정�
 # 로깅
 loguru==0.7.2              # 깔끔한 로그 출력 (print 대신 사용, 파일 로깅 가능)
 
+# 모델 학습
+scipy==1.13.1
+scikit-learn==1.4.2
+lightgbm==4.3.0
+xgboost==2.0.3
+catboost==1.2.7
+joblib==1.4.2
 
+# 시각화
+matplotlib==3.8.3
+seaborn==0.13.2
+
+# 평가 추적
+wandb==0.16.3
+
+# 테스트
+# pytest==8.0.2  # 현재 프로젝트에서는 직접 실행 방식 사용
