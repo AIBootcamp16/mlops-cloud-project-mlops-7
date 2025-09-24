@@ -7,11 +7,12 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-      build-essential gcc tzdata curl \
+      build-essential \
+      tzdata curl \
       fonts-noto-cjk fonts-noto-cjk-extra \
- && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
- && echo $TZ > /etc/timezone \
- && rm -rf /var/lib/apt/lists/*
+    && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
+    && echo $TZ > /etc/timezone \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
