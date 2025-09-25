@@ -41,5 +41,8 @@ seaborn==0.13.2
 # 평가 추적
 wandb==0.16.3
 
+# fastapi
+fastapi==0.110.0
+uvicorn[standard]==0.27.1
 # 테스트
 # pytest==8.0.2  # 현재 프로젝트에서는 직접 실행 방식 사용
