@@ -1,0 +1,10 @@
+# FastAPI 서버용 추가 의존성
+
+# FastAPI 관련
+fastapi==0.104.1           # FastAPI 웹 프레임워크
+uvicorn==0.24.0           # ASGI 서버
+pydantic==2.6.1           # 이미 base requirements에 있음
+python-multipart==0.0.6   # 폼 데이터 처리용
+
+# 기존 requirements.txt의 모든 의존성도 필요
+-r requirements.txt
