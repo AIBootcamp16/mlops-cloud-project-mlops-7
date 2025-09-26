@@ -11,9 +11,10 @@
 ├── src/                            # 공통 소스 코드
 │   ├── data/                       # 데이터 관련 패키지
 │   │     ├── crawler.py            # 크롤링 후 s3 적재
-│   │     ├── s3_call.py         # s3 호출 
-│   │     ├── data_cleaning.py   # 데이터 정제 (필요한 특성만 가져온 뒤 train-val-test 분리 후 결측치, 이상치 처리 및 파생변수 생성)
-│   │     └── preprocessing.py   # 전처리 (표준화, 정규화, 인코딩)
+│   │     ├── s3_push.py            # s3 데이터 업로드 
+│   │     ├── s3_pull.py            # s3 데이터 가져오기
+│   │     ├── data_cleaning.py      # 데이터 정제 (필요한 특성만 가져온 뒤 train-val-test 분리 후 결측치, 이상치 처리 및 파생변수 생성)
+│   │     └── preprocessing.py      # 전처리 (표준화, 정규화, 인코딩)
 │   │     
 │   ├── models/                     # ML 모델 학습 및 평가 관련 패키지
 │   │        ├── split.py           # train-val-test 분리 
@@ -21,7 +22,7 @@
 │   │        └── train.py           # 모델 학습 (get_model() 학습, WANDB저장)
 │   │
 │   └── utils/                      # 유틸리티 패키지
-│
+│           └── utils.py            # 유틸(랜덤 시드, 경로 반환)
 ├── tests/                          # 테스트
 ├── notebooks/                      # Jupyter 노트북
 │   ├── fonts/                      # ttf 파일 모음 directory
@@ -37,7 +38,7 @@
 
 
 
-기상청 데이터 크롤링 -> s3 적재 -> s3 호출 -> 데이터 정재 -> 데이터 전처리 -> 모델 학습 -> 모델 평가 -> 배포
+기상청 데이터 크롤링 -> s3 적재 -> s3 호출 -> 데이터 정제 -> 데이터 전처리 -> 모델 학습 -> 모델 평가 -> 배포
 
 if "__name__" == __main__:
 
