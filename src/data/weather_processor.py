@@ -13,14 +13,14 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
 from src.utils.logger_config import configure_logger
-from src.data_ingestion.kma_client import KMAApiClient
+from src.data.kma_client import KMAApiClient
 from src.utils.config import KMAApiConfig, S3Config
 from src.storage.s3_client import S3StorageClient
 from src.storage.s3_client import WeatherDataS3Handler
 from src.features.feature_builder import create_ml_dataset
 
 # ✅ WeatherParser → parsers 로 변경
-from src.data_ingestion import parsers  
+from src.data import parsers  
 
 _logger = configure_logger(__name__)
 
@@ -163,7 +163,7 @@ def main():
         pm10_raw = client.fetch_pm10(target_time, target_time)
         uv_raw = client.fetch_uv(target_time)
 
-        processor = WeatherDataProcessor(s3_config)
+        processor = WeatherDataProcessor(kma_config=kma_config, s3_config=s3_config)
         stored_keys = processor.process_and_store_weather_data(
             asos_raw=asos_raw, pm10_raw=pm10_raw, uv_raw=uv_raw, timestamp=target_time
         )

@@ -108,8 +108,6 @@ docker tag weather-collector:v1.0.0 your-registry/weather-collector:v1.0.0
 docker push your-registry/weather-collector:v1.0.0
 <br>
 
-<br>
-
 ## 💻​ 구현 기능
 ### 기능1
 - _작품에 대한 주요 기능을 작성해주세요_
