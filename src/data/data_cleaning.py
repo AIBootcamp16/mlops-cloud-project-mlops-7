@@ -8,7 +8,7 @@ import pandas as pd
 from io import StringIO
 
 from src.data.s3_pull import get_s3_data
-
+from src.utils.utils import save_to_s3
 def clean_weather_data(df: pd.DataFrame) -> pd.DataFrame:
     """날씨/미세먼지 데이터 컬럼명 변경, 타입 변환, 불필요 컬럼 제거"""
 
@@ -257,29 +257,6 @@ def add_comfort_score(df: pd.DataFrame,
     df["comfort_score"] = comfort.clip(lower=0, upper=100)
 
     return df
-
-
-def save_to_s3(df, bucket, key, sep=","):
-    """DataFrame을 CSV로 변환 후 S3에 업로드"""
-    # 1️⃣ DataFrame → CSV 문자열 변환
-    csv_buffer = StringIO()
-    df.to_csv(csv_buffer, index=False, sep=sep, encoding="utf-8")
-
-    # 2️⃣ S3 클라이언트 생성
-    s3_client = boto3.client(
-        "s3",
-        aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
-        aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
-        region_name=os.getenv("AWS_REGION")
-    )
-
-    # 3️⃣ 업로드 실행
-    s3_client.put_object(
-        Bucket=bucket,
-        Key=key,
-        Body=csv_buffer.getvalue()
-    )
-    print(f"✅ S3 업로드 완료: s3://{bucket}/{key}")
 
 
 if __name__ == "__main__":
