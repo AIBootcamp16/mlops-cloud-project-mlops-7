@@ -1,4 +1,4 @@
-"""Feature builder for weather datasets (ASOS, PM10, UV)."""
+"""Feature builder for weather datasets (ASOS, PM10)."""
 
 from __future__ import annotations
 
@@ -7,22 +7,23 @@ import pandas as pd
 import numpy as np
 
 
-def create_ml_dataset(raw_data: Dict[str, Any]) -> pd.DataFrame:
+def create_ml_dataset(raw_data: Dict[str, Any], include_labels: bool = False) -> pd.DataFrame:
     """
-    주어진 원시 기상 데이터를 머신러닝 학습용 DataFrame으로 변환합니다.
-    raw_data: {
-        "asos": List[Dict],
-        "pm10": List[Dict],
-        "uv": List[Dict]
-    }
+    주어진 원시 기상 데이터를 머신러닝 DataFrame으로 변환합니다.
+
+    Args:
+        raw_data: {
+            "asos": List[Dict],
+            "pm10": List[Dict]
+        }
+        include_labels: True면 comfort_score(정답) 포함, False면 추론용
     """
     # Convert each raw dataset into DataFrame
     asos_df = pd.DataFrame(raw_data.get("asos", []))
     pm10_df = pd.DataFrame(raw_data.get("pm10", []))
-    uv_df = pd.DataFrame(raw_data.get("uv", []))
 
     # observed_at 컬럼을 datetime으로 변환 및 통일
-    for df in [asos_df, pm10_df, uv_df]:
+    for df in [asos_df, pm10_df]:
         if not df.empty and "observed_at" in df.columns:
             df["datetime"] = pd.to_datetime(df["observed_at"], utc=True)
 
@@ -37,10 +38,7 @@ def create_ml_dataset(raw_data: Dict[str, Any]) -> pd.DataFrame:
                     "station_id": str(row.get("station_id", "")),
                     "datetime": row.get("datetime"),
                     "temperature": float(row.get("value", 0)) if row.get("value") and str(row.get("value")).replace('.', '').replace('-', '').isdigit() else None,
-                    "pm10": None,
-                    "uv_uvb": None,
-                    "uv_uva": None,
-                    "uv_euv": None
+                    "pm10": None
                 }
                 all_records.append(record)
             except:
@@ -75,67 +73,12 @@ def create_ml_dataset(raw_data: Dict[str, Any]) -> pd.DataFrame:
                         "station_id": station_id,
                         "datetime": datetime_val,
                         "temperature": None,
-                        "pm10": pm10_val,
-                        "uv_uvb": None,
-                        "uv_uva": None,
-                        "uv_euv": None
+                        "pm10": pm10_val
                     }
                     all_records.append(record)
             except:
                 continue
 
-    # UV 데이터 처리
-    if not uv_df.empty:
-        for _, row in uv_df.iterrows():
-            try:
-                station_id = str(row.get("station_id", ""))
-                datetime_val = row.get("datetime")
-
-                # UV 값들 처리
-                uvb_val = row.get("value")
-                uva_val = row.get("uva_value")
-                euv_val = row.get("euv_value")
-
-                # 숫자 검증
-                for val_name, val in [("uvb", uvb_val), ("uva", uva_val), ("euv", euv_val)]:
-                    if val is not None:
-                        try:
-                            val = float(val)
-                            if val == -999.0:  # 결측치 처리
-                                val = None
-                        except:
-                            val = None
-
-                    if val_name == "uvb":
-                        uvb_val = val
-                    elif val_name == "uva":
-                        uva_val = val
-                    else:
-                        euv_val = val
-
-                # 기존 레코드 찾아서 업데이트 또는 새 레코드 생성
-                found = False
-                for record in all_records:
-                    if record["station_id"] == station_id and record["datetime"] == datetime_val:
-                        record["uv_uvb"] = uvb_val
-                        record["uv_uva"] = uva_val
-                        record["uv_euv"] = euv_val
-                        found = True
-                        break
-
-                if not found:
-                    record = {
-                        "station_id": station_id,
-                        "datetime": datetime_val,
-                        "temperature": None,
-                        "pm10": None,
-                        "uv_uvb": uvb_val,
-                        "uv_uva": uva_val,
-                        "uv_euv": euv_val
-                    }
-                    all_records.append(record)
-            except:
-                continue
 
     # DataFrame 생성
     if all_records:
@@ -147,14 +90,14 @@ def create_ml_dataset(raw_data: Dict[str, Any]) -> pd.DataFrame:
         merged_df = merged_df.reset_index(drop=True)
 
         # 피처 엔지니어링 적용
-        merged_df = add_engineered_features(merged_df)
+        merged_df = add_engineered_features(merged_df, include_labels=include_labels)
 
         return merged_df
     else:
-        return pd.DataFrame(columns=["station_id", "datetime", "temperature", "pm10", "uv_uvb", "uv_uva", "uv_euv"])
+        return pd.DataFrame(columns=["station_id", "datetime", "temperature", "pm10"])
 
 
-def add_engineered_features(df: pd.DataFrame) -> pd.DataFrame:
+def add_engineered_features(df: pd.DataFrame, include_labels: bool = False) -> pd.DataFrame:
     """기본 기상 데이터에 출퇴근 쾌적지수 관련 피처들을 추가합니다."""
 
     if df.empty:
@@ -235,16 +178,9 @@ def add_engineered_features(df: pd.DataFrame) -> pd.DataFrame:
         # 야외활동 적합도
         df['outdoor_activity_ok'] = df['pm10'] <= 80
 
-    # 5. 자외선 기반 피처들
-    if 'uv_uvb' in df.columns:
-        # 자외선 존재 여부 (낮/밤 구분)
-        df['has_uv'] = df['uv_uvb'].notna() & (df['uv_uvb'] > 0)
-
-        # 자외선 차단 필요
-        df['sun_protection_needed'] = df['uv_uvb'] > 0.02
-
-    # 6. 종합 쾌적지수 계산
-    df['comfort_score'] = calculate_comfort_score(df)
+    # 5. 종합 쾌적지수 계산 (학습용만)
+    if include_labels:
+        df['comfort_score'] = calculate_comfort_score(df)
 
     return df
 

@@ -70,31 +70,50 @@ class WeatherDataS3Handler:
         self.s3_client = s3_client
 
     def save_raw_weather_data(self, data_type: str, raw_data: str, timestamp: datetime) -> str:
-        """원시 날씨 데이터 저장"""
-        date_str = timestamp.strftime("%Y/%m/%d")
+        """원시 날씨 데이터 저장 (파티션 구조 사용)"""
+        # 파티션 구조로 경로 생성
+        year = timestamp.strftime("%Y")
+        month = timestamp.strftime("%m")
+        day = timestamp.strftime("%d")
         time_str = timestamp.strftime("%H%M%S")
-        key = f"raw/{data_type}/{date_str}/{time_str}.txt"
+
+        partition_path = f"year={year}/month={month}/day={day}"
+        key = f"raw/{data_type}/{partition_path}/{time_str}.txt"
 
         self.s3_client.put_object(key, raw_data, content_type="text/plain")
         print(f"원시 데이터 저장: s3://{self.s3_client.bucket_name}/{key}")
         return key
 
     def save_parsed_weather_data(self, data_type: str, parsed_data: List[Dict], timestamp: datetime) -> str:
-        """파싱된 날씨 데이터 저장"""
-        date_str = timestamp.strftime("%Y/%m/%d")
+        """파싱된 날씨 데이터 저장 (파티션 구조 사용)"""
+        # 파티션 구조로 경로 생성
+        year = timestamp.strftime("%Y")
+        month = timestamp.strftime("%m")
+        day = timestamp.strftime("%d")
         time_str = timestamp.strftime("%H%M%S")
-        key = f"processed/{data_type}/{date_str}/{time_str}.json"
+
+        partition_path = f"year={year}/month={month}/day={day}"
+        key = f"processed/{data_type}/{partition_path}/{time_str}.json"
 
         json_data = json.dumps(parsed_data, ensure_ascii=False, default=str)
         self.s3_client.put_object(key, json_data, content_type="application/json")
         print(f"처리된 데이터 저장: s3://{self.s3_client.bucket_name}/{key}")
         return key
 
-    def save_ml_dataset(self, df: pd.DataFrame, timestamp: datetime) -> str:
-        """ML 데이터셋 저장"""
-        date_str = timestamp.strftime("%Y/%m/%d")
+    def save_ml_dataset(self, df: pd.DataFrame, timestamp: datetime, key_suffix: str = None) -> str:
+        """ML 데이터셋 저장 (파티션 구조 사용)"""
+        # 파티션 구조로 경로 생성
+        year = timestamp.strftime("%Y")
+        month = timestamp.strftime("%m")
+        day = timestamp.strftime("%d")
         time_str = timestamp.strftime("%H%M%S")
-        key = f"ml_dataset/{date_str}/dataset_{time_str}.parquet"
+
+        partition_path = f"year={year}/month={month}/day={day}"
+
+        if key_suffix:
+            key = f"ml_dataset/{partition_path}/dataset_{time_str}_{key_suffix}.parquet"
+        else:
+            key = f"ml_dataset/{partition_path}/dataset_{time_str}.parquet"
 
         buffer = io.BytesIO()
         df.to_parquet(buffer, index=False)
@@ -122,12 +141,28 @@ class WeatherDataS3Handler:
         obj = self.s3_client.get_object(latest_key)
         return pd.read_parquet(io.BytesIO(obj))
 
+    def save_csv_to_s3(self, df: pd.DataFrame, key: str) -> str:
+        """DataFrame을 CSV로 S3에 저장 (마스터 데이터용)"""
+        csv_buffer = io.StringIO()
+        df.to_csv(csv_buffer, index=False, encoding='utf-8')
+        csv_content = csv_buffer.getvalue()
+
+        self.s3_client.put_object(key, csv_content, content_type="text/csv")
+        print(f"마스터 CSV 저장: s3://{self.s3_client.bucket_name}/{key}")
+        return key
+
+    def load_csv_from_s3(self, key: str) -> pd.DataFrame:
+        """S3에서 CSV를 로드하여 DataFrame으로 변환"""
+        csv_content = self.s3_client.get_object(key)
+        return pd.read_csv(io.StringIO(csv_content.decode('utf-8')))
+
     def get_data_inventory(self) -> Dict[str, int]:
         """S3 데이터 인벤토리 조회"""
         inventory = {
             "raw_data": len(self.s3_client.list_objects(prefix="raw/")),
             "processed_data": len(self.s3_client.list_objects(prefix="processed/")),
             "ml_datasets": len(self.s3_client.list_objects(prefix="ml_dataset/")),
+            "master_data": len([k for k in self.s3_client.list_objects() if k.endswith('.csv')]),
             "total": len(self.s3_client.list_objects())
         }
         return inventory

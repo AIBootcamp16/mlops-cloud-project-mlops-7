@@ -115,33 +115,6 @@ def parse_pm10_raw(raw_data: str) -> List[Dict[str, Any]]:
         return []
 
 
-def parse_uv_raw(raw_data: str) -> List[Dict[str, Any]]:
-    """Parse UV (자외선) raw data from KMA API"""
-    try:
-        lines = raw_data.strip().split('\n')
-        data_lines = [line for line in lines if not line.startswith('#') and line.strip()]
-
-        parsed_data = []
-        for line in data_lines:
-            parts = line.split()
-            if len(parts) >= 5:  # UV 데이터는 더 많은 컬럼이 있음
-                parsed_data.append({
-                    "station_id": parts[1] if len(parts) > 1 else "unknown",
-                    "observed_at": _parse_datetime_from_line(parts[0]) if parts[0] else datetime.now(tz=timezone.utc),
-                    "category": "uv",
-                    "value": parts[2] if len(parts) > 2 else None,  # UVB
-                    "uva_value": parts[3] if len(parts) > 3 else None,
-                    "euv_value": parts[4] if len(parts) > 4 else None,
-                    "unit": "W/m²",
-                    "created_at": datetime.now(tz=timezone.utc),
-                    "raw_line": line
-                })
-
-        _logger.info(f"Parsed UV data: {len(parsed_data)} records")
-        return parsed_data
-    except Exception as e:
-        _logger.error(f"Failed to parse UV data: {e}")
-        return []
 
 
 def _parse_datetime_from_line(datetime_str: str) -> datetime:
@@ -157,4 +130,4 @@ def _parse_datetime_from_line(datetime_str: str) -> datetime:
         return datetime.now(tz=timezone.utc)
 
 
-__all__ = ["extract_measurements", "parse_asos_raw", "parse_pm10_raw", "parse_uv_raw"]
+__all__ = ["extract_measurements", "parse_asos_raw", "parse_pm10_raw"]
