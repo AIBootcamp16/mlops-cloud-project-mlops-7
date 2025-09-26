@@ -2,7 +2,8 @@ import os
 import random
 
 import numpy as np
-
+import boto3
+from io import StringIO
 
 def set_seed(seed: int = 42):
     """
@@ -135,6 +136,31 @@ def get_latest_model_version(model_name: str):
     """특정 모델의 최신 버전 반환"""
     versions = get_model_versions(model_name)
     return versions[-1] if versions else None
+
+
+
+def save_to_s3(df, bucket, key, sep=","):
+    """DataFrame을 CSV로 변환 후 S3에 업로드"""
+    # 1️⃣ DataFrame → CSV 문자열 변환
+    csv_buffer = StringIO()
+    df.to_csv(csv_buffer, index=False, sep=sep, encoding="utf-8")
+
+    # 2️⃣ S3 클라이언트 생성
+    s3_client = boto3.client(
+        "s3",
+        aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+        aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+        region_name=os.getenv("AWS_REGION")
+    )
+
+    # 3️⃣ 업로드 실행
+    s3_client.put_object(
+        Bucket=bucket,
+        Key=key,
+        Body=csv_buffer.getvalue()
+    )
+    print(f"✅ S3 업로드 완료: s3://{bucket}/{key}")
+
 
 
 if __name__ == "__main__":
