@@ -5,6 +5,10 @@ import numpy as np
 import boto3
 from io import StringIO
 
+# .env 파일 로드 (S3 환경변수 자동 인식용)
+from dotenv import load_dotenv
+load_dotenv()
+
 def set_seed(seed: int = 42):
     """
     모든 랜덤 시드 고정
@@ -162,6 +166,69 @@ def save_to_s3(df, bucket, key, sep=","):
     print(f"✅ S3 업로드 완료: s3://{bucket}/{key}")
 
 
+def get_s3_client():
+    """S3 클라이언트 생성 (중복 제거용)"""
+    return boto3.client(
+        "s3",
+        aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+        aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+        region_name=os.getenv("AWS_REGION")
+    )
+
+def save_model_to_s3(model_data, bucket, base_path):
+    """모델을 체계적인 구조로 S3에 저장"""
+    import pickle
+    import json
+    import tempfile
+    
+    s3_client = get_s3_client()
+    
+    # 1️⃣ JSON 파일들 저장
+    files_to_save = {
+        f"{base_path}/config/train_config.json": model_data.get("hyperparameters", {}),
+        f"{base_path}/config/data_info.json": model_data.get("data_info", {}),
+        f"{base_path}/metadata/metrics.json": model_data.get("metrics", {}),
+        f"{base_path}/metadata/experiment_log.json": {
+            "experiment_name": model_data.get("experiment_name"),
+            "wandb_project": model_data.get("wandb_project"),
+            "timestamp": model_data.get("timestamp"),
+            "model_name": model_data.get("model_name")
+        }
+    }
+    
+    for key, content in files_to_save.items():
+        s3_client.put_object(
+            Bucket=bucket,
+            Key=key,
+            Body=json.dumps(content, indent=2, ensure_ascii=False).encode('utf-8')
+        )
+    
+    # 2️⃣ requirements.txt 저장
+    s3_client.put_object(
+        Bucket=bucket,
+        Key=f"{base_path}/config/requirements.txt",
+        Body=model_data.get("requirements", "").encode('utf-8')
+    )
+    
+    # 3️⃣ 모델 객체들 저장
+    artifacts = {
+        "model.pkl": model_data.get("model"),
+        "scaler.pkl": model_data.get("scaler")
+    }
+    
+    for filename, obj in artifacts.items():
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.pkl') as temp_file:
+            pickle.dump(obj, temp_file)
+            temp_filename = temp_file.name
+        
+        try:
+            s3_client.upload_file(temp_filename, bucket, f"{base_path}/model_artifact/{filename}")
+        finally:
+            os.remove(temp_filename)
+    
+    print(f"✅ 모델 S3 저장 완료: s3://{bucket}/{base_path}/")
+
+
 
 if __name__ == "__main__":
     set_seed(42)
@@ -182,3 +249,8 @@ if __name__ == "__main__":
     print(f"LGBM 모델 저장 경로: {model_save_path('lgbm')}")
     print(f"다음 실험명: {auto_increment_run_suffix('experiment-001')}")
     print(f"버전 없는 경우: {auto_increment_run_suffix('my-model')}")
+    
+    print("\n=== S3 관련 ===")
+    print(f"S3 클라이언트 생성: {get_s3_client}")
+    print(f"DataFrame S3 저장: {save_to_s3}")
+    print(f"모델 구조 S3 저장: {save_model_to_s3}")
