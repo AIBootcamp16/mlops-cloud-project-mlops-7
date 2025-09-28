@@ -265,3 +265,15 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/jupyternotebooks,python,vim,macos,windows
+
+# Project specific ignores
+# Exclude temporary/draft documentation files
+docs/data_cleaning.md
+docs/dummy.md
+docs/models_plan.md
+docs/plan.md
+docs/planFors3emerge.md
+docs/dag_plan.md
+
+# WANDB logs
+wandb/
