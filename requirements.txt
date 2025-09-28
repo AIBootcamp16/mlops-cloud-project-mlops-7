@@ -41,6 +41,9 @@ seaborn==0.13.2
 # 평가 추적
 wandb==0.16.3
 
+# Python 함수나 클래스를 **커맨드라인 인터페이스(CLI)**로 자동 변환해주는 라이브러리
+fire==0.5.0
+
 # fastapi
 fastapi==0.110.0
 uvicorn[standard]==0.27.1

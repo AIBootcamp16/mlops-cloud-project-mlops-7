@@ -47,7 +47,11 @@ services:
     environment:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION}
       - S3_BUCKET=${S3_BUCKET}
+      - WANDB_API_KEY=${WANDB_API_KEY}
+      - WANDB_ENTITY=${WANDB_ENTITY}
+      - WANDB_PROJECT=${WANDB_PROJECT}
     networks:
       - ml-network
 
