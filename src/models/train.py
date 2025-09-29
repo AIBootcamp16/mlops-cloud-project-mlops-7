@@ -172,24 +172,25 @@ def train_models(
     if hasattr(best_model, 'get_params'):
         hyperparameters = best_model.get_params()
     
+    # S3 저장용 모델 데이터 패키징
     model_data = {
-        "model": best_model,
-        "scaler": scaler,
-        "model_name": best_model_name,
-        "metrics": best_result,
-        "experiment_name": experiment_name,
-        "wandb_project": wandb_project,
-        "timestamp": current_time,
-        "hyperparameters": hyperparameters,
-        "data_info": {
-            "target": "comfort_score",
-            "model_type": "regression",
-            "train_samples": len(y_train),
-            "val_samples": len(y_val),
-            "test_samples": len(y_test),
-            "features": X_train.shape[1]
+        "model": best_model,                    # 학습된 최고 성능 모델 객체 → model_artifact/model.pkl
+        "scaler": scaler,                       # 전처리용 StandardScaler 객체 → model_artifact/scaler.pkl
+        "model_name": best_model_name,          # 모델명 (예: 'rf') → metadata/experiment_log.json
+        "metrics": best_result,                 # 성능 지표 (RMSE, MAE) → metadata/metrics.json
+        "experiment_name": experiment_name,     # 실험명 (예: 'weather-predictor-006') → metadata/experiment_log.json
+        "wandb_project": wandb_project,         # WANDB 프로젝트명 → metadata/experiment_log.json
+        "timestamp": current_time,              # 학습 완료 시간 → metadata/experiment_log.json
+        "hyperparameters": hyperparameters,     # 모델 하이퍼파라미터 → config/train_config.json
+        "data_info": {                          # 데이터 정보 → config/data_info.json
+            "target": "comfort_score",          # 타겟 변수명
+            "model_type": "regression",         # 모델 유형 (회귀)
+            "train_samples": len(y_train),      # 학습 데이터 샘플 수
+            "val_samples": len(y_val),          # 검증 데이터 샘플 수
+            "test_samples": len(y_test),        # 테스트 데이터 샘플 수
+            "features": X_train.shape[1]        # 피처 개수 (원핫인코딩 후)
         },
-        "requirements": _get_requirements()
+        "requirements": _get_requirements()     # 패키지 버전 정보 → config/requirements.txt
     }
     
     base_path = f"models/{experiment_name}"

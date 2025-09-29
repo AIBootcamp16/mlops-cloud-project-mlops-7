@@ -34,6 +34,27 @@ services:
     networks:
       - ml-network
 
+  # Streamlit 웹 앱
+  streamlit:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile
+    ports:
+      - "8501:8501"
+    volumes:
+      - .:/app
+    working_dir: /app
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION}
+      - S3_BUCKET=${S3_BUCKET}
+    command: streamlit run app.py --server.port=8501 --server.address=0.0.0.0
+    networks:
+      - ml-network
+    depends_on:
+      - api-server
+
   # Jupyter Lab (notebooks 폴더 활용)
   jupyter:
     build:
