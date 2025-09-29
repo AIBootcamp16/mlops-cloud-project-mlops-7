@@ -14,29 +14,9 @@ import wandb
 
 from src.models.split import split_and_scale_data
 from src.utils.utils import set_seed, save_model_to_s3
+from src.utils.model_utils import get_model
+from src.utils.wandb_utils import get_latest_run_name, get_requirements
 
-
-def get_runs(entity, project):
-    """WANDB 프로젝트의 모든 실행 조회"""
-    return wandb.Api().runs(path=f"{entity}/{project}", order="-created_at")
-
-
-def get_latest_run_name(entity, project, prefix="weather-predictor"):
-    """최신 실험명 조회"""
-    runs = get_runs(entity, project)
-    matching_runs = [run.name for run in runs if run.name.startswith(prefix)]
-    if not matching_runs:
-        return f"{prefix}-000"
-    return matching_runs[0]
-
-
-def _get_requirements():
-    """requirements.txt 파일 읽기"""
-    try:
-        with open('/app/requirements.txt', 'r', encoding='utf-8') as f:
-            return f.read()
-    except FileNotFoundError:
-        return "requirements.txt not found"
 
 
 def tune_rf_hyperparameters(
@@ -64,8 +44,8 @@ def tune_rf_hyperparameters(
     set_seed(random_state)
     
     # wandb 초기화
-    entity = os.getenv('WANDB_ENTITY')
-    wandb_project = wandb_project or os.getenv('WANDB_PROJECT')
+    entity = os.getenv('WANDB_ENTITY') or 'realtheai-insight-'
+    wandb_project = wandb_project or os.getenv('WANDB_PROJECT') or 'weather-predictor'
     
     # 실험명 생성 (tune 접두사 사용)
     latest_run_name = get_latest_run_name(entity, wandb_project, prefix="rf-tune")
@@ -75,7 +55,7 @@ def tune_rf_hyperparameters(
         num = int(latest_run_name.split("-")[-1]) + 1
         experiment_name = f"rf-tune-{str(num).zfill(3)}"
     
-    wandb.init(project=wandb_project, name=experiment_name)
+    wandb.init(entity=entity, project=wandb_project, name=experiment_name)
     
     print(f"🚀 RF 하이퍼파라미터 튜닝 시작... ({search_type.upper()})")
     
@@ -211,7 +191,7 @@ def tune_rf_hyperparameters(
             "test_samples": len(y_test),
             "features": X_train_full.shape[1]
         },
-        "requirements": _get_requirements()
+        "requirements": get_requirements()
     }
     
     base_path = f"models/{experiment_name}"
