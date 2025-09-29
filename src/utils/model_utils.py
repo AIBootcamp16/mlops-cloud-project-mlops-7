@@ -12,16 +12,27 @@ def get_model(name, params=None, random_state=42):
     if name == 'linear':
         return LinearRegression(**params)
     elif name == 'ridge':
-        return Ridge(random_state=random_state, **params)
+        return Ridge(random_state=random_state,
+                      **params)
     elif name == 'lasso':
-        return Lasso(random_state=random_state, **params)
+        return Lasso(random_state=random_state,
+                      **params)
     elif name == 'rf':
-        return RandomForestRegressor(random_state=random_state, **params)
+        return RandomForestRegressor(random_state=random_state,
+                                      **params)
     elif name == 'lgbm':
-        return LGBMRegressor(random_state=random_state, verbose=-1, **params)
+        return LGBMRegressor(random_state=random_state,
+                              verbose=-1,
+                                **params)
     elif name == 'xgb':
-        return XGBRegressor(random_state=random_state, **params)
+        return XGBRegressor(random_state=random_state,
+                             **params)
     elif name == 'cat':
-        return CatBoostRegressor(random_state=random_state, verbose=False,train_dir=None, **params)
+        return CatBoostRegressor(random_state=random_state,
+                                  verbose=False,
+                                  train_dir=None,
+                                  logging_level="Silent",
+                                  allow_writing_files=False,
+                                  **params)
     else:
         raise ValueError(f"Unknown model: {name}")
