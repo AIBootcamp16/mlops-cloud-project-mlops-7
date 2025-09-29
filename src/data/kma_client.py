@@ -12,7 +12,7 @@ from src.utils.logger_config import configure_logger
 
 
 class KMAApiClient:
-    """Client wrapper for the KMA API (ASOS, PM10, UV)."""
+    """Client wrapper for the KMA API (ASOS, PM10)."""
 
     def __init__(self, config: KMAApiConfig) -> None:
         self._config = config
@@ -60,20 +60,6 @@ class KMAApiClient:
         }
         url = f"{self._config.base_url}/kma_pm10.php"
         self._logger.info(f"Requesting KMA PM10 data: {url}", extra={"params": params})
-        response = requests.get(url, params=params, timeout=self._config.timeout_seconds)
-        response.raise_for_status()
-        return response.text
-
-    def fetch_uv(self, target_time: Optional[Union[str, datetime]] = None) -> str:
-        """자외선 (UV)"""
-        target = self._normalize_time(target_time)
-        params = {
-            "tm": target.strftime("%Y%m%d%H%M"),
-            "stn": self._config.station_id,
-            "authKey": self._config.api_key,
-        }
-        url = f"{self._config.base_url}/kma_sfctm_uv.php"
-        self._logger.info(f"Requesting KMA UV data: {url}", extra={"params": params})
         response = requests.get(url, params=params, timeout=self._config.timeout_seconds)
         response.raise_for_status()
         return response.text
