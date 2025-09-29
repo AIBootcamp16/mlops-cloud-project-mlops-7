@@ -7,17 +7,17 @@ import numpy as np
 import pickle
 import datetime
 from sklearn.metrics import mean_squared_error, mean_absolute_error
+from sklearn.linear_model import LinearRegression, Ridge, Lasso
+from sklearn.ensemble import RandomForestRegressor
+from lightgbm import LGBMRegressor
+from xgboost import XGBRegressor
+from catboost import CatBoostRegressor
 import fire
 import wandb
 
 from src.models.split import split_and_scale_data
 from src.utils.utils import set_seed, auto_increment_run_suffix, save_model_to_s3
 
-from sklearn.linear_model import LinearRegression, Ridge, Lasso
-from sklearn.ensemble import RandomForestRegressor
-from lightgbm import LGBMRegressor
-from xgboost import XGBRegressor
-from catboost import CatBoostRegressor
 
 
 def get_runs(entity, project):
@@ -62,7 +62,7 @@ def get_model(name, params=None):
     elif name == 'xgb':
         return XGBRegressor(random_state=42, **params)
     elif name == 'cat':
-        return CatBoostRegressor(random_state=42, verbose=False, **params)
+        return CatBoostRegressor(random_state=42, verbose=False,train_dir=None, **params)
     else:
         raise ValueError(f"Unknown model: {name}")
 
