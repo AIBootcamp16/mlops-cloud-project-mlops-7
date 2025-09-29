@@ -17,54 +17,11 @@ import wandb
 
 from src.models.split import split_and_scale_data
 from src.utils.utils import set_seed, auto_increment_run_suffix, save_model_to_s3
+from src.utils.wandb_utils import get_latest_run_name, get_requirements
+from src.utils.model_utils import get_model
 
 
 
-def get_runs(entity, project):
-    path = f"{entity}/{project}"
-    try:
-        return wandb.Api().runs(path=path, order="-created_at")
-    except ValueError:
-        return []
-
-
-def get_latest_run_name(entity, project, prefix="weather-predictor"):
-    """최신 실험명 조회"""
-    runs = get_runs(entity, project)
-    matching_runs = [run.name for run in runs if run.name.startswith(prefix)]
-    if not matching_runs:
-        return f"{prefix}-000"  # 첫 실행을 위한 기본값
-    return matching_runs[0]  # 가장 최신
-
-def _get_requirements():
-    """requirements.txt 파일 읽기"""
-    try:
-        with open('/app/requirements.txt', 'r', encoding='utf-8') as f:
-            return f.read()
-    except FileNotFoundError:
-        return "requirements.txt not found"
-
-def get_model(name, params=None):
-    """모델 팩토리 함수"""
-    if params is None:
-        params = {}
-    
-    if name == 'linear':
-        return LinearRegression(**params)
-    elif name == 'ridge':
-        return Ridge(random_state=42, **params)
-    elif name == 'lasso':
-        return Lasso(random_state=42, **params)
-    elif name == 'rf':
-        return RandomForestRegressor(random_state=42, **params)
-    elif name == 'lgbm':
-        return LGBMRegressor(random_state=42, verbose=-1, **params)
-    elif name == 'xgb':
-        return XGBRegressor(random_state=42, **params)
-    elif name == 'cat':
-        return CatBoostRegressor(random_state=42, verbose=False,train_dir=None, **params)
-    else:
-        raise ValueError(f"Unknown model: {name}")
 
 def train_models(
     model_names=['linear', 'ridge', 'lasso', 'rf', 'lgbm', 'xgb', 'cat'],
@@ -94,8 +51,9 @@ def train_models(
     if not entity or not wandb_project:
         raise RuntimeError("WANDB_ENTITY / WANDB_PROJECT를 설정하세요.")
     
-    latest_run_name = get_latest_run_name(entity, wandb_project)
-    experiment_name = auto_increment_run_suffix(latest_run_name)
+    prefix = wandb_project
+    latest_run_name = get_latest_run_name(entity, wandb_project,prefix=prefix)
+    experiment_name = auto_increment_run_suffix(latest_run_name, default_prefix=prefix)
     wandb.init(entity=entity, project=wandb_project, name=experiment_name)
     
     print("🚀 모델 학습 시작...")
@@ -113,7 +71,7 @@ def train_models(
         print(f"\n📊 {model_name.upper()} 모델 학습 중...")
         
         # 모델 생성
-        model = get_model(model_name)
+        model = get_model(model_name, random_state=random_state)
         
         # 학습
         model.fit(X_train, y_train)
@@ -197,7 +155,7 @@ def train_models(
             "test_samples": len(y_test),
             "features": X_train.shape[1]
         },
-        "requirements": _get_requirements()
+        "requirements": get_requirements()
     }
     
     base_path = f"models/{experiment_name}"
