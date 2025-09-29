@@ -5,7 +5,10 @@ from .utils import (
     models_dir,
     model_save_path,
     ensure_dir,
-    auto_increment_run_suffix
+    auto_increment_run_suffix,
+    save_to_s3,
+    get_s3_client,
+    save_model_to_s3
 )
 
 __all__ = [
@@ -15,5 +18,8 @@ __all__ = [
     'models_dir',
     'model_save_path',
     'ensure_dir',
-    'auto_increment_run_suffix'
+    'auto_increment_run_suffix',
+    'save_to_s3',
+    'get_s3_client',
+    'save_model_to_s3'
 ]
