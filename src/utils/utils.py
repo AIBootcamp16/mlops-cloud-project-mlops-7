@@ -111,15 +111,15 @@ def ensure_dir(path: str):
     return path
 
 
-def auto_increment_run_suffix(name: str, pad: int = 3):
-    """실행 번호 자동 증가"""
-    suffix = name.split("-")[-1]
+def auto_increment_run_suffix(latest: str | None, *, default_prefix: str, pad: int = 3) -> str:
+    if not latest:
+        return f"{default_prefix}-000"
     try:
-        next_suffix = str(int(suffix) + 1).zfill(pad)
-        return name.replace(suffix, next_suffix)
-    except ValueError:
-        # 숫자가 아닌 경우 001부터 시작
-        return f"{name}-001"
+        base, num = latest.rsplit("-", 1)
+        return f"{base}-{int(num)+1:0{pad}d}"
+    except Exception:
+        # 형식이 깨져도 규칙을 이 함수가 책임지고 재정의
+        return f"{default_prefix}-000"
 
 
 def get_model_versions(model_name: str):
