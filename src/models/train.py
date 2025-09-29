@@ -21,8 +21,11 @@ from catboost import CatBoostRegressor
 
 
 def get_runs(entity, project):
-    """WANDB 프로젝트의 모든 실행 조회"""
-    return wandb.Api().runs(path=f"{entity}/{project}", order="-created_at")
+    path = f"{entity}/{project}"
+    try:
+        return wandb.Api().runs(path=path, order="-created_at")
+    except ValueError:
+        return []
 
 
 def get_latest_run_name(entity, project, prefix="weather-predictor"):
@@ -84,11 +87,16 @@ def train_models(
     set_seed(random_state)
     
     # wandb 초기화 (최신 실험명 기반)
-    entity = os.getenv('WANDB_ENTITY')
-    wandb_project = wandb_project or os.getenv('WANDB_PROJECT')
+    entity = os.getenv('WANDB_ENTITY') or 'realtheai-insight-'
+    wandb_project = wandb_project or os.getenv('WANDB_PROJECT') or 'weather-predictor'
+
+    # wandb 확인
+    if not entity or not wandb_project:
+        raise RuntimeError("WANDB_ENTITY / WANDB_PROJECT를 설정하세요.")
+    
     latest_run_name = get_latest_run_name(entity, wandb_project)
     experiment_name = auto_increment_run_suffix(latest_run_name)
-    wandb.init(project=wandb_project, name=experiment_name)
+    wandb.init(entity=entity, project=wandb_project, name=experiment_name)
     
     print("🚀 모델 학습 시작...")
     
