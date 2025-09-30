@@ -165,7 +165,7 @@ def train_models(
     print(f"   Val RMSE: {best_result['val_rmse']:.4f}")
     print(f"   Test RMSE: {best_result['test_rmse']:.4f}")
     
-    # wandb에 베스트 모델 로깅
+    # wandb에 베스트 모델 로깅 (wandb Run에서 볼 수 있음.)
     wandb.log({
         "best_model": best_model_name,
         "best_val_rmse": best_result['val_rmse'],

@@ -1,0 +1,83 @@
+services:
+  # FastAPI 서버 (api 폴더 기반)
+  api-server:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    working_dir: /app
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - S3_BUCKET=${S3_BUCKET}
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - ml-network
+
+  # 데이터 수집/처리 서비스
+  data-processor:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile
+    volumes:
+      - .:/app
+    working_dir: /app
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - S3_BUCKET=${S3_BUCKET}
+      - WEATHER_API_KEY=${WEATHER_API_KEY}
+    command: python src/data/weather_collector.py
+    networks:
+      - ml-network
+
+  # Streamlit 웹 앱
+  streamlit:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile
+    ports:
+      - "8501:8501"
+    volumes:
+      - .:/app
+    working_dir: /app
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION}
+      - S3_BUCKET=${S3_BUCKET}
+    command: streamlit run app.py --server.port=8501 --server.address=0.0.0.0
+    networks:
+      - ml-network
+    depends_on:
+      - api-server
+
+  # Jupyter Lab (notebooks 폴더 활용)
+  jupyter:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile.jupyter
+    ports:
+      - "8888:8888"
+    volumes:
+      - .:/app
+    working_dir: /app
+    env_file: .env
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION}
+      - S3_BUCKET=${S3_BUCKET}
+      - WEATHER_API_KEY=${WEATHER_API_KEY}
+      - WANDB_API_KEY=${WANDB_API_KEY}
+      - WANDB_ENTITY=${WANDB_ENTITY}
+      - WANDB_PROJECT=${WANDB_PROJECT}
+    networks:
+      - ml-network
+
+networks:
+  ml-network:
+    driver: bridge
