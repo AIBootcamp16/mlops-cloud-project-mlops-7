@@ -7,64 +7,21 @@ import numpy as np
 import pickle
 import datetime
 from sklearn.metrics import mean_squared_error, mean_absolute_error
-import fire
-import wandb
-
-from src.models.split import split_and_scale_data
-from src.utils.utils import set_seed, auto_increment_run_suffix, save_model_to_s3
-
 from sklearn.linear_model import LinearRegression, Ridge, Lasso
 from sklearn.ensemble import RandomForestRegressor
 from lightgbm import LGBMRegressor
 from xgboost import XGBRegressor
 from catboost import CatBoostRegressor
+import fire
+import wandb
+
+from src.models.split import split_and_scale_data
+from src.utils.utils import set_seed, auto_increment_run_suffix, save_model_to_s3
+from src.utils.wandb_utils import get_latest_run_name, get_requirements
+from src.utils.model_utils import get_model
 
 
-def get_runs(entity, project):
-    path = f"{entity}/{project}"
-    try:
-        return wandb.Api().runs(path=path, order="-created_at")
-    except ValueError:
-        return []
 
-
-def get_latest_run_name(entity, project, prefix="weather-predictor"):
-    """최신 실험명 조회"""
-    runs = get_runs(entity, project)
-    matching_runs = [run.name for run in runs if run.name.startswith(prefix)]
-    if not matching_runs:
-        return f"{prefix}-000"  # 첫 실행을 위한 기본값
-    return matching_runs[0]  # 가장 최신
-
-def _get_requirements():
-    """requirements.txt 파일 읽기"""
-    try:
-        with open('/app/requirements.txt', 'r', encoding='utf-8') as f:
-            return f.read()
-    except FileNotFoundError:
-        return "requirements.txt not found"
-
-def get_model(name, params=None):
-    """모델 팩토리 함수"""
-    if params is None:
-        params = {}
-    
-    if name == 'linear':
-        return LinearRegression(**params)
-    elif name == 'ridge':
-        return Ridge(random_state=42, **params)
-    elif name == 'lasso':
-        return Lasso(random_state=42, **params)
-    elif name == 'rf':
-        return RandomForestRegressor(random_state=42, **params)
-    elif name == 'lgbm':
-        return LGBMRegressor(random_state=42, verbose=-1, **params)
-    elif name == 'xgb':
-        return XGBRegressor(random_state=42, **params)
-    elif name == 'cat':
-        return CatBoostRegressor(random_state=42, verbose=False, **params)
-    else:
-        raise ValueError(f"Unknown model: {name}")
 
 def train_models(
     model_names=['linear', 'ridge', 'lasso', 'rf', 'lgbm', 'xgb', 'cat'],
@@ -94,8 +51,9 @@ def train_models(
     if not entity or not wandb_project:
         raise RuntimeError("WANDB_ENTITY / WANDB_PROJECT를 설정하세요.")
     
-    latest_run_name = get_latest_run_name(entity, wandb_project)
-    experiment_name = auto_increment_run_suffix(latest_run_name)
+    prefix = wandb_project
+    latest_run_name = get_latest_run_name(entity, wandb_project,prefix=prefix)
+    experiment_name = auto_increment_run_suffix(latest_run_name, default_prefix=prefix)
     wandb.init(entity=entity, project=wandb_project, name=experiment_name)
     
     print("🚀 모델 학습 시작...")
@@ -113,7 +71,7 @@ def train_models(
         print(f"\n📊 {model_name.upper()} 모델 학습 중...")
         
         # 모델 생성
-        model = get_model(model_name)
+        model = get_model(model_name, random_state=random_state)
         
         # 학습
         model.fit(X_train, y_train)
@@ -165,7 +123,7 @@ def train_models(
     print(f"   Val RMSE: {best_result['val_rmse']:.4f}")
     print(f"   Test RMSE: {best_result['test_rmse']:.4f}")
     
-    # wandb에 베스트 모델 로깅 (wandb Run에서 볼 수 있음.)
+    # wandb에 베스트 모델 로깅
     wandb.log({
         "best_model": best_model_name,
         "best_val_rmse": best_result['val_rmse'],
@@ -180,25 +138,24 @@ def train_models(
     if hasattr(best_model, 'get_params'):
         hyperparameters = best_model.get_params()
     
-    # S3 저장용 모델 데이터 패키징
     model_data = {
-        "model": best_model,                    # 학습된 최고 성능 모델 객체 → model_artifact/model.pkl
-        "scaler": scaler,                       # 전처리용 StandardScaler 객체 → model_artifact/scaler.pkl
-        "model_name": best_model_name,          # 모델명 (예: 'rf') → metadata/experiment_log.json
-        "metrics": best_result,                 # 성능 지표 (RMSE, MAE) → metadata/metrics.json
-        "experiment_name": experiment_name,     # 실험명 (예: 'weather-predictor-006') → metadata/experiment_log.json
-        "wandb_project": wandb_project,         # WANDB 프로젝트명 → metadata/experiment_log.json
-        "timestamp": current_time,              # 학습 완료 시간 → metadata/experiment_log.json
-        "hyperparameters": hyperparameters,     # 모델 하이퍼파라미터 → config/train_config.json
-        "data_info": {                          # 데이터 정보 → config/data_info.json
-            "target": "comfort_score",          # 타겟 변수명
-            "model_type": "regression",         # 모델 유형 (회귀)
-            "train_samples": len(y_train),      # 학습 데이터 샘플 수
-            "val_samples": len(y_val),          # 검증 데이터 샘플 수
-            "test_samples": len(y_test),        # 테스트 데이터 샘플 수
-            "features": X_train.shape[1]        # 피처 개수 (원핫인코딩 후)
+        "model": best_model,
+        "scaler": scaler,
+        "model_name": best_model_name,
+        "metrics": best_result,
+        "experiment_name": experiment_name,
+        "wandb_project": wandb_project,
+        "timestamp": current_time,
+        "hyperparameters": hyperparameters,
+        "data_info": {
+            "target": "comfort_score",
+            "model_type": "regression",
+            "train_samples": len(y_train),
+            "val_samples": len(y_val),
+            "test_samples": len(y_test),
+            "features": X_train.shape[1]
         },
-        "requirements": _get_requirements()     # 패키지 버전 정보 → config/requirements.txt
+        "requirements": get_requirements()
     }
     
     base_path = f"models/{experiment_name}"

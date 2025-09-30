@@ -90,6 +90,8 @@ services:
       - WANDB_API_KEY=${WANDB_API_KEY}
       - WANDB_ENTITY=${WANDB_ENTITY}
       - WANDB_PROJECT=${WANDB_PROJECT}
+      - WANDB_DIR=/tmp/wandb
+      
     networks:
       - ml-network
 
