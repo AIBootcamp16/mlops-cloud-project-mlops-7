@@ -1,10 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import Head from 'next/head';
 
 export default function Home() {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [welcomeMessage, setWelcomeMessage] = useState('');
   const [showResult, setShowResult] = useState(false);
+  const chartRef = useRef(null);
+  const chartInstance = useRef(null);
 
   // FastAPI 서버 URL (Docker 환경)
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -28,6 +31,76 @@ export default function Home() {
 
     fetchWelcomeMessage();
   }, [API_BASE_URL]);
+
+  // Chart.js 초기화 및 업데이트
+  useEffect(() => {
+    if (!chartRef.current || !result || result.error) {
+      return;
+    }
+
+    const loadChart = async () => {
+      const Chart = (await import('chart.js')).Chart;
+      await import('chart.js/auto');
+
+      const ctx = chartRef.current.getContext('2d');
+      const score = result.score || 0;
+      const remaining = 100 - score;
+      
+      // 점수에 따른 색상 결정
+      let color = '#FB8C00'; // fair
+      if (score >= 80) color = '#FFB300'; // excellent
+      else if (score >= 60) color = '#43A047'; // good
+      else if (score < 50) color = '#E53935'; // poor
+
+      if (chartInstance.current) {
+        chartInstance.current.destroy();
+      }
+
+      chartInstance.current = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['쾌적지수', ''],
+          datasets: [{
+            data: [score, remaining],
+            backgroundColor: [color, 'rgba(255, 255, 255, 0.2)'],
+            borderColor: 'rgba(255, 255, 255, 0.3)',
+            borderWidth: 2,
+            circumference: 360,
+            rotation: -90
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          cutout: '75%',
+          animation: {
+            animateRotate: true,
+            duration: 2000,
+            easing: 'easeInOutQuart'
+          },
+          plugins: {
+            legend: {
+              display: false
+            },
+            title: {
+              display: false
+            },
+            tooltip: {
+              enabled: false
+            }
+          }
+        }
+      });
+    };
+
+    loadChart();
+
+    return () => {
+      if (chartInstance.current) {
+        chartInstance.current.destroy();
+      }
+    };
+  }, [result, showResult]);
 
   // 예측 API 호출
   const getPrediction = async (type) => {
@@ -84,83 +157,93 @@ export default function Home() {
       );
     }
 
-    // 백엔드에서 받은 label을 그대로 사용
-    const scoreClass = result.label || 'fair';
+    const scoreClass = (result.label || 'fair').toLowerCase();
+    const displayLabel = result.label
+      ? result.label.charAt(0).toUpperCase() + result.label.slice(1)
+      : scoreClass.charAt(0).toUpperCase() + scoreClass.slice(1);
     const emoji = result.score >= 80 ? '☀️' :
                  result.score >= 60 ? '😊' :
                  result.score >= 50 ? '😣' : '🥶';
 
     return (
       <div className={`result-box ${showResult ? 'show' : ''}`}>
-        {/* 쾌적 지수 섹션 */}
+        {/* 쾌적 지수 섹션 - 원형 게이지 */}
         <div className="comfort-section">
           <h2 className="comfort-title">쾌적 지수</h2>
-          <div className="score-box">
-            <div className="score-display">{result.score}</div>
-            <div className="score-label">{result.label}</div>
+          
+          <div className="gauge-container">
+            <canvas ref={chartRef} width="300" height="300"></canvas>
+            
+            <div className="gauge-center">
+              <div className={`gauge-score score-${scoreClass}`}>
+                {result.score}
+              </div>
+              <div className={`gauge-label score-${scoreClass}`}>
+                {displayLabel}
+              </div>
+            </div>
           </div>
         </div>
 
         {/* 평가 메시지 박스 */}
-        <div className="evaluation-box">
+        <div className={`evaluation-box eval-${scoreClass}`}>
           <span className="emoji-inline">{emoji}</span>
           {result.evaluation}
         </div>
         
-        {/* 상세 날씨 정보 */}
+        {/* 간단한 한 줄 날씨 정보 */}
         {result.weather_data && (
           <div className="weather-details">
-            <h3>📊 현재 날씨 정보</h3>
-            <div className="weather-grid">
-              <div className="weather-card">
-                <div className="weather-icon">🌡️</div>
-                <div className="weather-info">
-                  <div className="weather-label">온도</div>
-                  <div className="weather-value">{result.weather_data.temperature}°C</div>
-                </div>
+            <h2 className="weather-title">현재 날씨 정보</h2>
+            <div className="weather-items">
+              <div className="weather-item">
+                <span className="weather-emoji">🌡️</span>
+                <span className="weather-label">온도</span>
+                <span className="weather-value">{result.weather_data.temperature}°C</span>
               </div>
-              <div className="weather-card">
-                <div className="weather-icon">💧</div>
-                <div className="weather-info">
-                  <div className="weather-label">습도</div>
-                  <div className="weather-value">{result.weather_data.humidity}%</div>
-                </div>
+              
+              <div className="weather-item">
+                <span className="weather-emoji">💧</span>
+                <span className="weather-label">습도</span>
+                <span className="weather-value">{result.weather_data.humidity}%</span>
               </div>
-              <div className="weather-card">
-                <div className="weather-icon">🌧️</div>
-                <div className="weather-info">
-                  <div className="weather-label">강수량</div>
-                  <div className="weather-value">{result.weather_data.precipitation}mm</div>
-                </div>
+              
+              <div className="weather-item">
+                <span className="weather-emoji">🌧️</span>
+                <span className="weather-label">강수량</span>
+                <span className="weather-value">{result.weather_data.rainfall}mm</span>
               </div>
-              <div className="weather-card">
-                <div className="weather-icon">🌫️</div>
-                <div className="weather-info">
-                  <div className="weather-label">미세먼지</div>
-                  <div className="weather-value">{result.weather_data.pm10}㎍/㎥</div>
-                  <div className="weather-grade">({result.weather_data.pm10_grade})</div>
-                </div>
+              
+              <div className="weather-item">
+                <span className="weather-emoji">🌫️</span>
+                <span className="weather-label">미세먼지</span>
+                <span className="weather-value">{result.weather_data.pm10}㎍/㎥</span>
               </div>
-              <div className="weather-card">
-                <div className="weather-icon">💨</div>
-                <div className="weather-info">
-                  <div className="weather-label">풍속</div>
-                  <div className="weather-value">{result.weather_data.wind_speed}m/s</div>
-                </div>
+              
+              <div className="weather-item">
+                <span className="weather-emoji">💨</span>
+                <span className="weather-label">풍속</span>
+                <span className="weather-value">{result.weather_data.wind_speed}m/s</span>
               </div>
-              <div className="weather-card">
-                <div className="weather-icon">🧭</div>
-                <div className="weather-info">
-                  <div className="weather-label">기압</div>
-                  <div className="weather-value">{result.weather_data.pressure}hPa</div>
-                </div>
+              
+              <div className="weather-item">
+                <span className="weather-emoji">🧭</span>
+                <span className="weather-label">기압</span>
+                <span className="weather-value">{result.weather_data.pressure}hPa</span>
               </div>
             </div>
           </div>
         )}
         
         <div className="prediction-time">
-          📅 {result.prediction_time}
+          📅 {new Date().toLocaleString('ko-KR', { 
+            year: 'numeric', 
+            month: '2-digit', 
+            day: '2-digit', 
+            hour: '2-digit', 
+            minute: '2-digit',
+            hour12: false 
+          })}
         </div>
       </div>
     );
@@ -212,7 +295,7 @@ export default function Home() {
         @keyframes slideUp {
           from {
             opacity: 0;
-            transform: translateY(10px);
+            transform: translateY(20px);
           }
           to {
             opacity: 1;
@@ -227,7 +310,7 @@ export default function Home() {
 
         .container {
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-          max-width: 900px;
+          max-width: 1000px;
           margin: 0 auto;
           padding: 30px 20px;
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -394,6 +477,7 @@ export default function Home() {
           opacity: 0.9;
         }
 
+        /* 원형 게이지 스타일 */
         .comfort-section {
           margin-bottom: 30px;
           animation: slideUp 0.6s ease-out;
@@ -403,135 +487,197 @@ export default function Home() {
           text-align: center;
           font-size: 1.3em;
           font-weight: 600;
-          margin-bottom: 15px;
+          margin-bottom: 25px;
           color: white;
           text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
         }
 
-        .score-box {
-          max-width: 500px;
-          margin: 0 auto;
-          padding: 40px 30px;
-          background: rgba(255, 255, 255, 0.25);
-          backdrop-filter: blur(10px);
-          border: 2px solid rgba(255, 255, 255, 0.3);
-          border-radius: 20px;
-          text-align: center;
-          box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 10px;
+        .gauge-container {
+          position: relative;
+          width: 280px;
+          height: 280px;
+          margin: 0 auto 30px;
         }
 
-        .score-display {
-          font-size: 6em;
+        .gauge-center {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          text-align: center;
+          z-index: 10;
+        }
+
+        .gauge-score {
+          font-size: 4.5rem;
           font-weight: 800;
           line-height: 1;
-          color: white;
-          text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
-          letter-spacing: -2px;
+          text-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+          margin-bottom: 8px;
         }
 
-        .score-label {
-          font-size: 1.5em;
-          font-weight: 600;
-          color: rgba(255, 255, 255, 0.95);
-          text-transform: lowercase;
+        .gauge-score.score-excellent {
+          color: #FFB300;
+        }
+
+        .gauge-score.score-good {
+          color: #43A047;
+        }
+
+        .gauge-score.score-fair {
+          color: #FB8C00;
+        }
+
+        .gauge-score.score-poor {
+          color: #E53935;
+        }
+
+        .gauge-label {
+          font-size: 1.4rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+        }
+
+        .gauge-label.score-excellent {
+          color: #FFB300;
+        }
+
+        .gauge-label.score-good {
+          color: #43A047;
+        }
+
+        .gauge-label.score-fair {
+          color: #FB8C00;
+        }
+
+        .gauge-label.score-poor {
+          color: #E53935;
         }
 
         .evaluation-box {
           max-width: 650px;
           margin: 0 auto 35px;
-          padding: 25px 30px;
-          background: #FFF9F0;
-          border-radius: 15px;
-          border-left: 6px solid #FF9500;
-          text-align: left;
-          font-size: 1.15em;
+          padding: 20px 26px;
+          border-radius: 18px;
+          border-left: 10px solid #FB8C00;
+          background: rgba(255, 255, 255, 0.92);
+          color: #5D3C0B;
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          font-size: 1.05em;
           line-height: 1.6;
-          color: #333;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+          box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
           animation: slideUp 0.8s ease-out;
+          transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .evaluation-box:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 16px 34px rgba(0, 0, 0, 0.16);
+        }
+
+        .evaluation-box.eval-excellent {
+          background: #FFF8E1;
+          border-left-color: #FFB300;
+          color: #7A5A00;
+        }
+
+        .evaluation-box.eval-good {
+          background: #E9F7EF;
+          border-left-color: #43A047;
+          color: #1B5E20;
+        }
+
+        .evaluation-box.eval-fair {
+          background: #FFF3E0;
+          border-left-color: #FB8C00;
+          color: #7C4A02;
+        }
+
+        .evaluation-box.eval-poor {
+          background: #FDECEA;
+          border-left-color: #E53935;
+          color: #8C2B24;
         }
 
         .emoji-inline {
-          font-size: 1.4em;
-          margin-right: 10px;
+          font-size: 1.6em;
+          flex-shrink: 0;
         }
 
         .weather-details {
-          margin: 25px 0;
+          margin: 30px 0;
           animation: slideUp 0.9s ease-out;
         }
 
-        .weather-details h3 {
+        .weather-title {
           text-align: center;
-          margin-bottom: 20px;
-          font-size: 1.2em;
-          font-weight: 600;
+          margin-bottom: 30px;
+          font-size: 1.5em;
+          font-weight: 700;
+          text-shadow: 2px 2px 6px rgba(0,0,0,0.3);
+          letter-spacing: 0.5px;
         }
 
-        .weather-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-          gap: 12px;
+        .weather-items {
+          display: flex;
+          flex-direction: column;
+          gap: 15px;
+          max-width: 600px;
+          margin: 0 auto;
         }
 
-        .weather-card {
-          background: rgba(255, 255, 255, 0.2);
-          border-radius: 12px;
-          padding: 15px;
+        .weather-item {
           display: flex;
           align-items: center;
-          gap: 12px;
+          gap: 15px;
+          padding: 15px 20px;
+          background: rgba(255, 255, 255, 0.15);
+          border-radius: 12px;
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 255, 255, 0.2);
           transition: all 0.3s ease;
-          border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .weather-card:hover {
+        .weather-item:hover {
           background: rgba(255, 255, 255, 0.25);
-          transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+          transform: translateX(5px);
         }
 
-        .weather-icon {
+        .weather-emoji {
           font-size: 2em;
-          line-height: 1;
-        }
-
-        .weather-info {
-          flex: 1;
+          flex-shrink: 0;
         }
 
         .weather-label {
-          font-size: 0.8em;
-          opacity: 0.85;
-          font-weight: 500;
-          margin-bottom: 2px;
+          font-size: 1em;
+          font-weight: 600;
+          color: rgba(255, 255, 255, 0.9);
+          min-width: 60px;
+          flex-shrink: 0;
         }
 
         .weather-value {
           font-size: 1.1em;
           font-weight: 700;
-        }
-
-        .weather-grade {
-          font-size: 0.75em;
-          opacity: 0.8;
-          margin-top: 2px;
+          color: white;
+          text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+          margin-left: auto;
         }
 
         .prediction-time {
           text-align: center;
           font-size: 0.9em;
           color: rgba(255, 255, 255, 0.8);
-          margin-top: 25px;
+          margin-top: 30px;
           padding-top: 20px;
           border-top: 1px solid rgba(255, 255, 255, 0.2);
           font-weight: 300;
         }
 
+        /* 반응형 디자인 */
         @media (max-width: 768px) {
           .container {
             padding: 20px 15px;
@@ -559,21 +705,17 @@ export default function Home() {
             font-size: 16px;
           }
 
-          .comfort-title {
-            font-size: 1.2em;
-            margin-bottom: 12px;
+          .gauge-container {
+            width: 240px;
+            height: 240px;
           }
 
-          .score-box {
-            padding: 35px 25px;
+          .gauge-score {
+            font-size: 3.5rem;
           }
 
-          .score-display {
-            font-size: 4.5em;
-          }
-
-          .score-label {
-            font-size: 1.3em;
+          .gauge-label {
+            font-size: 1.2rem;
           }
 
           .evaluation-box {
@@ -581,31 +723,24 @@ export default function Home() {
             padding: 20px 25px;
           }
 
-          .weather-grid {
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 10px;
-          }
-
-          .weather-card {
-            padding: 12px;
-          }
-
-          .result-box {
-            padding: 25px 20px;
+          .weather-title {
+            font-size: 1.3em;
+            margin-bottom: 25px;
           }
         }
 
         @media (max-width: 480px) {
-          .weather-grid {
-            grid-template-columns: 1fr;
+          .gauge-container {
+            width: 200px;
+            height: 200px;
           }
 
-          .score-display {
-            font-size: 3.5em;
+          .gauge-score {
+            font-size: 3rem;
           }
 
-          .score-label {
-            font-size: 1.1em;
+          .gauge-label {
+            font-size: 1rem;
           }
         }
       `}</style>

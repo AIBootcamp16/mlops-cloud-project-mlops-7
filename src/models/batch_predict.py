@@ -8,6 +8,7 @@ import pickle
 import json
 from io import BytesIO
 from datetime import datetime
+import pytz
 from src.utils.utils import get_s3_client
 
 def get_latest_parquet_from_s3(bucket: str = None):
@@ -129,6 +130,16 @@ def batch_predict(experiment_name: str = None, output_path: str = None):
     # 1. S3에서 최신 parquet 파일 로드 (이미 전처리됨)
     df = get_latest_parquet_from_s3()
     
+    # datetime을 서울 시간대(KST)로 변환
+    kst = pytz.timezone('Asia/Seoul')
+    if 'datetime' in df.columns:
+        # 이미 UTC 타임존이 있으면 바로 변환, 없으면 localize 후 변환
+        if df['datetime'].dt.tz is None:
+            df['datetime'] = pd.to_datetime(df['datetime']).dt.tz_localize('UTC').dt.tz_convert(kst)
+        else:
+            df['datetime'] = df['datetime'].dt.tz_convert(kst)
+        print(f"🕐 시간대 변환: UTC → KST (서울) | 샘플: {df['datetime'].iloc[0]}")
+    
     # 2. 모델, 스케일러, config, feature_columns 로드
     model, scaler, config, feature_columns = load_model_from_s3(experiment_name)
     print(f"✅ 모델 로드 완료 (피처: {len(feature_columns)}개)")
@@ -140,9 +151,15 @@ def batch_predict(experiment_name: str = None, output_path: str = None):
     # 4. 예측
     predictions = model.predict(X_scaled)
     
-    # 5. 결과 저장
+    # 5. 결과 저장 (기상 데이터 포함)
     result_df = df[['datetime', 'station_id']].copy()
     result_df['predicted_comfort_score'] = predictions
+    
+    # 기상 데이터 추가
+    weather_cols = ['temperature', 'humidity', 'rainfall', 'pm10', 'wind_speed', 'pressure', 'region']
+    for col in weather_cols:
+        if col in df.columns:
+            result_df[col] = df[col]
     
     if output_path:
         result_df.to_csv(output_path, index=False)

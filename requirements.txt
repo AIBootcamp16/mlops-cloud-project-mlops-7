@@ -48,6 +48,10 @@ fire==0.5.0
 fastapi==0.110.0
 uvicorn[standard]==0.27.1
 
+# MySQL
+pymysql==1.1.0
+cryptography==41.0.7
+
 # streamlit
 streamlit==1.31.0
 
