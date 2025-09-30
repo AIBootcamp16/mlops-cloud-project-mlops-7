@@ -34,10 +34,28 @@ def create_ml_dataset(raw_data: Dict[str, Any], include_labels: bool = False) ->
     if not asos_df.empty:
         for _, row in asos_df.iterrows():
             try:
+                def safe_float(value):
+                    """안전하게 float으로 변환"""
+                    if value is None or value == '':
+                        return None
+                    try:
+                        return float(value)
+                    except:
+                        return None
+
                 record = {
                     "station_id": str(row.get("station_id", "")),
                     "datetime": row.get("datetime"),
-                    "temperature": float(row.get("value", 0)) if row.get("value") and str(row.get("value")).replace('.', '').replace('-', '').isdigit() else None,
+                    "temperature": safe_float(row.get("temperature")),
+                    "wind_speed": safe_float(row.get("wind_speed")),
+                    "humidity": safe_float(row.get("humidity")),
+                    "pressure": safe_float(row.get("pressure")),
+                    "rainfall": safe_float(row.get("rainfall")),
+                    "wind_direction": safe_float(row.get("wind_direction")),
+                    "dew_point": safe_float(row.get("dew_point")),
+                    "cloud_amount": safe_float(row.get("cloud_amount")),
+                    "visibility": safe_float(row.get("visibility")),
+                    "sunshine": safe_float(row.get("sunshine")),
                     "pm10": None
                 }
                 all_records.append(record)
@@ -73,6 +91,15 @@ def create_ml_dataset(raw_data: Dict[str, Any], include_labels: bool = False) ->
                         "station_id": station_id,
                         "datetime": datetime_val,
                         "temperature": None,
+                        "wind_speed": None,
+                        "humidity": None,
+                        "pressure": None,
+                        "rainfall": None,
+                        "wind_direction": None,
+                        "dew_point": None,
+                        "cloud_amount": None,
+                        "visibility": None,
+                        "sunshine": None,
                         "pm10": pm10_val
                     }
                     all_records.append(record)
@@ -94,7 +121,11 @@ def create_ml_dataset(raw_data: Dict[str, Any], include_labels: bool = False) ->
 
         return merged_df
     else:
-        return pd.DataFrame(columns=["station_id", "datetime", "temperature", "pm10"])
+        return pd.DataFrame(columns=[
+            "station_id", "datetime", "temperature", "wind_speed", "humidity",
+            "pressure", "rainfall", "wind_direction", "dew_point", "cloud_amount",
+            "visibility", "sunshine", "pm10"
+        ])
 
 
 def add_engineered_features(df: pd.DataFrame, include_labels: bool = False) -> pd.DataFrame:
@@ -130,9 +161,9 @@ def add_engineered_features(df: pd.DataFrame, include_labels: bool = False) -> p
 
     # 2. 기온 기반 피처들
     if 'temperature' in df.columns:
-        # 온도 구간
+        # 온도 구간 (None 값 처리)
         df['temp_category'] = pd.cut(
-            df['temperature'],
+            df['temperature'].fillna(15),  # None 값을 기본값으로 대체
             bins=[-999, 0, 10, 20, 30, 999],
             labels=['very_cold', 'cold', 'mild', 'warm', 'hot']
         )
@@ -165,9 +196,9 @@ def add_engineered_features(df: pd.DataFrame, include_labels: bool = False) -> p
 
     # 4. 대기질 기반 피처들
     if 'pm10' in df.columns:
-        # 미세먼지 등급 (환경부 기준)
+        # 미세먼지 등급 (환경부 기준, None 값 처리)
         df['pm10_grade'] = pd.cut(
-            df['pm10'],
+            df['pm10'].fillna(50),  # None 값을 기본값으로 대체
             bins=[0, 30, 80, 150, 999],
             labels=['good', 'moderate', 'unhealthy', 'very_unhealthy']
         )
