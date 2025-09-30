@@ -59,7 +59,7 @@ def train_models(
     print("🚀 모델 학습 시작...")
     
     # 1. 데이터 로드 (split.py 활용)
-    X_train, X_val, X_test, y_train, y_val, y_test, scaler = split_and_scale_data(
+    X_train, X_val, X_test, y_train, y_val, y_test, scaler, feature_columns = split_and_scale_data(
         test_size=test_size, val_size=val_size, random_state=random_state
     )
     
@@ -141,6 +141,7 @@ def train_models(
     model_data = {
         "model": best_model,
         "scaler": scaler,
+        "feature_columns": feature_columns,
         "model_name": best_model_name,
         "metrics": best_result,
         "experiment_name": experiment_name,
