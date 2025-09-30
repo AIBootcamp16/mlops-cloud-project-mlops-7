@@ -153,12 +153,25 @@ def tune_hyperparameters(
         "requirements": get_requirements(),
     }
     
-    save_model_to_s3(model_data, os.getenv('S3_BUCKET'), f"models/{exp_name}")
-    
+    run_path = f"models/{exp_name}"
+    save_model_to_s3(model_data, os.getenv('S3_BUCKET'), run_path)
+
     wandb.finish()
     print("🎉 완료!\n")
-    
-    return best_model, search.best_params_, cv_rmse
+
+    return {
+        "run_path": run_path,
+        "run_id": exp_name,
+        "model_name": f"{model_name}_tuned",
+        "metrics": {
+            "cv_rmse": cv_rmse,
+            "train_rmse": train_rmse,
+            "test_rmse": test_rmse,
+            "train_mae": train_mae,
+            "test_mae": test_mae,
+        },
+        "best_params": search.best_params_,
+    }
 
 
 if __name__ == "__main__":

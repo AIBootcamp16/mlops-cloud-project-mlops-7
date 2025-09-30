@@ -55,10 +55,147 @@ services:
       - WANDB_ENTITY=${WANDB_ENTITY}
       - WANDB_PROJECT=${WANDB_PROJECT}
       - WANDB_DIR=/tmp/wandb
-      
+
+    networks:
+      - ml-network
+
+  airflow-postgres:
+    image: postgres:14
+    environment:
+      - POSTGRES_USER=airflow
+      - POSTGRES_PASSWORD=airflow
+      - POSTGRES_DB=airflow
+    volumes:
+      - airflow-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U airflow"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ml-network
+
+  airflow-init:
+    image: apache/airflow:2.8.4-python3.11
+    depends_on:
+      airflow-postgres:
+        condition: service_healthy
+    environment:
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@airflow-postgres:5432/airflow
+      - AIRFLOW_UID=50000
+      - PYTHONPATH=/opt/airflow
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION}
+      - S3_BUCKET=${S3_BUCKET}
+      - WEATHER_API_KEY=${WEATHER_API_KEY}
+      - WANDB_API_KEY=${WANDB_API_KEY}
+      - WANDB_ENTITY=${WANDB_ENTITY}
+      - WANDB_PROJECT=${WANDB_PROJECT}
+      - WANDB_MODE=${WANDB_MODE}
+    user: "0:0"
+    entrypoint: ["bash", "-c"]
+    command:
+      - >-
+        apt-get update && apt-get install -y libgomp1 &&
+        su airflow -c "pip install --no-cache-dir -r /opt/airflow/requirements.txt" &&
+        su airflow -c "airflow db init" &&
+        su airflow -c "airflow users create --username admin --firstname Admin --lastname User --role Admin --email admin@example.com --password admin" || true
+    volumes:
+      - ./Airflow/dag:/opt/airflow/dags
+      - ./src:/opt/airflow/src
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+      - ./requirements.txt:/opt/airflow/requirements.txt
+    networks:
+      - ml-network
+
+  airflow-webserver:
+    image: apache/airflow:2.8.4-python3.11
+    depends_on:
+      airflow-postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_started
+    environment:
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@airflow-postgres:5432/airflow
+      - AIRFLOW__CORE__DAGS_FOLDER=/opt/airflow/dags
+      - AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION=False
+      - AIRFLOW_UID=50000
+      - PYTHONPATH=/opt/airflow
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION}
+      - S3_BUCKET=${S3_BUCKET}
+      - WEATHER_API_KEY=${WEATHER_API_KEY}
+      - WANDB_API_KEY=${WANDB_API_KEY}
+      - WANDB_ENTITY=${WANDB_ENTITY}
+      - WANDB_PROJECT=${WANDB_PROJECT}
+      - WANDB_MODE=${WANDB_MODE}
+    user: "0:0"
+    entrypoint: ["bash", "-c"]
+    command:
+      - >-
+        apt-get update && apt-get install -y libgomp1 &&
+        su airflow -c "pip install --no-cache-dir -r /opt/airflow/requirements.txt" &&
+        su airflow -c "airflow webserver"
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./Airflow/dag:/opt/airflow/dags
+      - ./src:/opt/airflow/src
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+      - ./requirements.txt:/opt/airflow/requirements.txt
+    networks:
+      - ml-network
+
+  airflow-scheduler:
+    image: apache/airflow:2.8.4-python3.11
+    depends_on:
+      airflow-postgres:
+        condition: service_healthy
+      airflow-init:
+        condition: service_started
+    environment:
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@airflow-postgres:5432/airflow
+      - AIRFLOW__CORE__DAGS_FOLDER=/opt/airflow/dags
+      - AIRFLOW_UID=50000
+      - PYTHONPATH=/opt/airflow
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION}
+      - S3_BUCKET=${S3_BUCKET}
+      - WEATHER_API_KEY=${WEATHER_API_KEY}
+      - WANDB_API_KEY=${WANDB_API_KEY}
+      - WANDB_ENTITY=${WANDB_ENTITY}
+      - WANDB_PROJECT=${WANDB_PROJECT}
+      - WANDB_MODE=${WANDB_MODE}
+    user: "0:0"
+    entrypoint: ["bash", "-c"]
+    command:
+      - >-
+        apt-get update && apt-get install -y libgomp1 &&
+        su airflow -c "pip install --no-cache-dir -r /opt/airflow/requirements.txt" &&
+        su airflow -c "airflow scheduler"
+    volumes:
+      - ./Airflow/dag:/opt/airflow/dags
+      - ./src:/opt/airflow/src
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+      - ./requirements.txt:/opt/airflow/requirements.txt
     networks:
       - ml-network
 
 networks:
   ml-network:
     driver: bridge
+
+volumes:
+  airflow-postgres-data:

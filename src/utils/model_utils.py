@@ -28,10 +28,10 @@ def get_model(name, params=None, random_state=42):
         return XGBRegressor(random_state=random_state,
                              **params)
     elif name == 'cat':
+        # CatBoost는 verbose/logging_level/silent 중 하나만 허용하므로 verbose만 사용한다.
         return CatBoostRegressor(random_state=random_state,
                                   verbose=False,
                                   train_dir=None,
-                                  logging_level="Silent",
                                   allow_writing_files=False,
                                   **params)
     else:
