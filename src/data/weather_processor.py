@@ -211,29 +211,53 @@ class WeatherDataProcessor:
             return {"status": "failed", "error": str(e)}
 
     def _convert_csv_to_feature_format(self, df: pd.DataFrame) -> Dict[str, Any]:
-        """CSV 형태의 데이터를 feature_builder가 기대하는 형식으로 변환"""
+        """CSV 형태의 데이터를 feature_builder가 기대하는 형식으로 변환 (9개 ASOS 필드 포함)"""
         try:
             asos_records = []
             pm10_records = []
 
             for _, row in df.iterrows():
-                # ASOS 데이터 (온도)
-                if pd.notna(row.get('temperature')) or pd.notna(row.get('TA')):
-                    temp_value = row.get('temperature') or row.get('TA')
-                    asos_records.append({
-                        "station_id": str(row.get('STN', row.get('station_id', 'unknown'))),
-                        "observed_at": row.get('datetime'),
-                        "category": "asos",
-                        "value": temp_value,
-                        "unit": "°C"
-                    })
+                # ASOS 데이터 (9개 기상 필드 모두 매핑)
+                # 기존 CSV 컬럼명 → 새로운 필드명 매핑
+                station_id = str(row.get('STN', row.get('station_id', 'unknown')))
+                observed_at = row.get('datetime')
+
+                asos_record = {
+                    "station_id": station_id,
+                    "observed_at": observed_at,
+                    "category": "asos",
+                    # TA → temperature (기온)
+                    "temperature": row.get('temperature') if pd.notna(row.get('temperature')) else row.get('TA'),
+                    # WS → wind_speed (풍속)
+                    "wind_speed": row.get('wind_speed') if pd.notna(row.get('wind_speed')) else row.get('WS'),
+                    # HM → humidity (습도)
+                    "humidity": row.get('humidity') if pd.notna(row.get('humidity')) else row.get('HM'),
+                    # PA → pressure (기압)
+                    "pressure": row.get('pressure') if pd.notna(row.get('pressure')) else row.get('PA'),
+                    # RN → rainfall (강수량)
+                    "rainfall": row.get('rainfall') if pd.notna(row.get('rainfall')) else row.get('RN'),
+                    # WD → wind_direction (풍향)
+                    "wind_direction": row.get('wind_direction') if pd.notna(row.get('wind_direction')) else row.get('WD'),
+                    # TD → dew_point (이슬점)
+                    "dew_point": row.get('dew_point') if pd.notna(row.get('dew_point')) else row.get('TD'),
+                    # CA → cloud_amount (운량)
+                    "cloud_amount": row.get('cloud_amount') if pd.notna(row.get('cloud_amount')) else row.get('CA'),
+                    # VS → visibility (시정)
+                    "visibility": row.get('visibility') if pd.notna(row.get('visibility')) else row.get('VS'),
+                    # SS → sunshine (일조)
+                    "sunshine": row.get('sunshine') if pd.notna(row.get('sunshine')) else row.get('SS'),
+                }
+
+                # 하나라도 데이터가 있으면 추가
+                if any(pd.notna(v) for k, v in asos_record.items() if k not in ['station_id', 'observed_at', 'category']):
+                    asos_records.append(asos_record)
 
                 # PM10 데이터
                 if pd.notna(row.get('pm10')) or pd.notna(row.get('PM10')):
                     pm10_value = row.get('pm10') or row.get('PM10')
                     pm10_records.append({
-                        "station_id": str(row.get('STN', row.get('station_id', 'unknown'))),
-                        "observed_at": row.get('datetime'),
+                        "station_id": station_id,
+                        "observed_at": observed_at,
                         "category": "pm10",
                         "value": pm10_value,
                         "unit": "μg/m³"
@@ -246,6 +270,8 @@ class WeatherDataProcessor:
 
         except Exception as e:
             self._logger.error(f"데이터 형식 변환 실패: {e}")
+            import traceback
+            traceback.print_exc()
             return {"asos": [], "pm10": []}
 
     def fetch_weather_data(self, data_type: str) -> str:
