@@ -163,8 +163,14 @@ def train_models(
     
     wandb.finish()
     print("🎉 학습 완료!")
-    
-    return best_model, best_result
+
+    return {
+        "run_path": base_path,
+        "run_id": experiment_name,
+        "model_name": best_model_name,
+        "metrics": best_result,
+        "best_params": hyperparameters,
+    }
 
 if __name__ == "__main__":
     fire.Fire(train_models)
