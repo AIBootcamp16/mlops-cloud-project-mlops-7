@@ -93,6 +93,7 @@ def split_and_scale_data(test_size=0.2, val_size=0.2, random_state=42):
     
     return X_train_scaled, X_val_scaled, X_test_scaled, y_train, y_val, y_test, scaler, feature_columns
 
+
 if __name__ == "__main__":
     split_and_scale_data()
 

@@ -52,8 +52,3 @@ uvicorn[standard]==0.27.1
 pymysql==1.1.0
 cryptography==41.0.7
 
-# streamlit
-streamlit==1.31.0
-
-# 테스트
-# pytest==8.0.2  # 현재 프로젝트에서는 직접 실행 방식 사용
