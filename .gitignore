@@ -301,3 +301,12 @@ frontend/out/
 # catboost logs
 catboost_info/
 >>>>>>> origin/main2
+
+# Large data files
+weather_pm10_integrated_full.csv
+
+# Test files
+test_s3_upload.py
+test_s3_with_mock_data.py
+run_weather_pipeline.sh
+data_pipeline
