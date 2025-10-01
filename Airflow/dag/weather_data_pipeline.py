@@ -4,8 +4,9 @@ Airflow DAG for automated weather data collection and ML dataset generation.
 This DAG runs every hour to:
 1. Fetch weather data from KMA API (ASOS, PM10, UV)
 2. Parse and store raw data to S3
-3. Generate ML dataset with 30 engineered features
-4. Store ML dataset to S3 for model training
+3. Generate ML dataset with 34 engineered features
+4. Store ML dataset to S3 for real-time inference
+5. Append hourly data to master CSV for Rolling Window
 
 Schedule: Every hour at 10 minutes past the hour
 Author: MLOps Team
@@ -163,6 +164,113 @@ def generate_ml_dataset(**context):
 
     return s3_key
 
+def append_to_master_csv(**context):
+    """
+    Append hourly data to master CSV (without Rolling Window cleanup).
+    Rolling Window is applied weekly by master_data_update_dag.
+    """
+    from src.utils.config import S3Config
+    from src.storage.s3_client import S3StorageClient, WeatherDataS3Handler
+    import pandas as pd
+
+    print("=== Appending hourly data to master CSV ===")
+
+    # Get raw data from fetch task
+    ti = context['ti']
+    raw_data = ti.xcom_pull(task_ids='fetch_weather_data')
+
+    if not raw_data:
+        print("⚠️ No raw data to append to master CSV")
+        return
+
+    # Initialize S3 handler
+    s3_config = S3Config.from_env()
+    s3_client = S3StorageClient(
+        bucket_name=s3_config.bucket_name,
+        aws_access_key_id=s3_config.aws_access_key_id,
+        aws_secret_access_key=s3_config.aws_secret_access_key,
+        region_name=s3_config.region_name,
+        endpoint_url=s3_config.endpoint_url
+    )
+    weather_handler = WeatherDataS3Handler(s3_client)
+
+    # Convert parsed data to CSV format
+    current_data = []
+
+    asos_data = raw_data.get('asos', [])
+    pm10_data = raw_data.get('pm10', [])
+
+    for asos_record in asos_data:
+        current_data.append({
+            'datetime': asos_record.get('observed_at'),
+            'STN': asos_record.get('station_id'),
+            'temperature': asos_record.get('temperature'),
+            'wind_speed': asos_record.get('wind_speed'),
+            'humidity': asos_record.get('humidity'),
+            'pressure': asos_record.get('pressure'),
+            'rainfall': asos_record.get('rainfall'),
+            'wind_direction': asos_record.get('wind_direction'),
+            'dew_point': asos_record.get('dew_point'),
+            'cloud_amount': asos_record.get('cloud_amount'),
+            'visibility': asos_record.get('visibility'),
+            'sunshine': asos_record.get('sunshine'),
+            'pm10': None
+        })
+
+    for pm10_record in pm10_data:
+        # Find matching ASOS record and add PM10 value
+        found = False
+        for record in current_data:
+            if (record['datetime'] == pm10_record.get('observed_at') and
+                record['STN'] == pm10_record.get('station_id')):
+                record['pm10'] = pm10_record.get('value')
+                found = True
+                break
+
+        if not found:
+            current_data.append({
+                'datetime': pm10_record.get('observed_at'),
+                'STN': pm10_record.get('station_id'),
+                'temperature': None,
+                'wind_speed': None,
+                'humidity': None,
+                'pressure': None,
+                'rainfall': None,
+                'wind_direction': None,
+                'dew_point': None,
+                'cloud_amount': None,
+                'visibility': None,
+                'sunshine': None,
+                'pm10': pm10_record.get('value')
+            })
+
+    if not current_data:
+        print("⚠️ No valid data to append")
+        return
+
+    new_data_df = pd.DataFrame(current_data)
+    print(f"New hourly data: {len(new_data_df)} records")
+
+    # Load existing master CSV
+    master_key = "weather_pm10_integrated_full.csv"
+    try:
+        existing_df = weather_handler.load_csv_from_s3(master_key)
+        print(f"Existing master data: {len(existing_df)} records")
+
+        # Simple append (no Rolling Window, no deduplication, no sorting)
+        updated_df = pd.concat([existing_df, new_data_df], ignore_index=True)
+    except Exception as e:
+        print(f"No existing master CSV found, creating new one: {e}")
+        updated_df = new_data_df
+
+    # Save updated master CSV
+    weather_handler.save_csv_to_s3(updated_df, master_key)
+    print(f"✅ Master CSV updated: {len(updated_df)} total records")
+    print(f"📝 Note: Rolling Window cleanup runs weekly (Sunday 2 AM)")
+
+    return master_key
+
+
 def validate_pipeline_success(**context):
     """
     Validate that the entire pipeline completed successfully.
@@ -227,6 +335,12 @@ generate_ml_task = PythonOperator(
     dag=dag
 )
 
+append_master_task = PythonOperator(
+    task_id='append_to_master_csv',
+    python_callable=append_to_master_csv,
+    dag=dag
+)
+
 validate_task = PythonOperator(
     task_id='validate_pipeline',
     python_callable=validate_pipeline_success,
@@ -239,4 +353,4 @@ end_task = DummyOperator(
 )
 
 # Task dependencies
-start_task >> fetch_weather_task >> generate_ml_task >> validate_task >> end_task
+start_task >> fetch_weather_task >> generate_ml_task >> append_master_task >> validate_task >> end_task
