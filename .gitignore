@@ -278,6 +278,7 @@ docs/dag_plan.md
 # WANDB logs
 wandb/
 
+<<<<<<< HEAD
 # catboost logs
 catboost_info/
 
@@ -295,3 +296,8 @@ build/
 frontend/node_modules/
 frontend/.next/
 frontend/out/
+=======
+
+# catboost logs
+catboost_info/
+>>>>>>> origin/main2

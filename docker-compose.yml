@@ -13,6 +13,7 @@ services:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - S3_BUCKET=${S3_BUCKET}
+<<<<<<< HEAD
       - WEATHER_API_KEY=${WEATHER_API_KEY}
       - MYSQL_HOST=mysql
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-mlops2025}
@@ -36,6 +37,11 @@ services:
       - ml-network
     depends_on:
       - api-server
+=======
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - ml-network
+>>>>>>> origin/main2
 
   # 데이터 수집/처리 서비스
   data-processor:
@@ -54,7 +60,10 @@ services:
     networks:
       - ml-network
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/main2
   # Jupyter Lab (notebooks 폴더 활용)
   jupyter:
     build:
@@ -77,6 +86,7 @@ services:
       - WANDB_PROJECT=${WANDB_PROJECT}
       - WANDB_DIR=/tmp/wandb
 
+<<<<<<< HEAD
       
     networks:
       - ml-network
@@ -110,6 +120,11 @@ services:
     depends_on:
       - mysql
 
+=======
+    networks:
+      - ml-network
+
+>>>>>>> origin/main2
   airflow-postgres:
     image: postgres:14
     environment:
@@ -244,14 +259,21 @@ services:
     networks:
       - ml-network
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/main2
 networks:
   ml-network:
     driver: bridge
 
 volumes:
+<<<<<<< HEAD
 
   mysql_data:
 
   airflow-postgres-data:
 
+=======
+  airflow-postgres-data:
+>>>>>>> origin/main2
