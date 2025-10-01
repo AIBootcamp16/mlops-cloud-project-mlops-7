@@ -7,11 +7,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
 import pytz
 
-# batch_predict.py에서 예측 함수 import
-from src.models.batch_predict import batch_predict
-
-# MySQL 함수 import
-from src.storage.mysql_client import query_prediction_by_datetime, save_prediction_to_mysql
+# MySQL 함수 import (DAG가 미리 저장한 데이터 조회만)
+from src.utils.mysql_utils import query_prediction_by_datetime
 
 from dotenv import load_dotenv
 
@@ -50,7 +47,7 @@ def health():
 
 @app.get("/predict/{prediction_type}")
 def get_comfort_score(prediction_type: str):
-    """쾌적지수 예측 (캐시 우선 조회)"""
+    """쾌적지수 예측 (데이터 우선 조회)"""
     if prediction_type not in ["now", "morning", "evening"]:
         raise HTTPException(status_code=400, detail="prediction_type은 now, morning, evening 중 하나여야 합니다")
     
@@ -59,46 +56,29 @@ def get_comfort_score(prediction_type: str):
         kst = pytz.timezone('Asia/Seoul')
         current_hour = datetime.now(kst).replace(minute=0, second=0, microsecond=0)
         
-        # 2. MySQL에서 캐시 조회
-        cached = query_prediction_by_datetime(current_hour)
+        # 2. MySQL DB 조회 (DAG가 미리 저장한 데이터)
+        data = query_prediction_by_datetime(current_hour)
         
-        if cached:
-            # ✅ 캐시 HIT
-            print(f"✅ 캐시 HIT: {current_hour}")
-            comfort_score = cached['comfort_score']
-            weather_data = {
-                'temperature': cached.get('temperature'),
-                'humidity': cached.get('humidity'),
-                'rainfall': cached.get('rainfall'),
-                'pm10': cached.get('pm10'),
-                'wind_speed': cached.get('wind_speed'),
-                'pressure': cached.get('pressure'),
-                'region': cached.get('region'),
-                'station_id': cached.get('station_id')
-            }
-        else:
-            # ❌ 캐시 MISS: 최초 예측
-            print(f"🔄 캐시 MISS: {current_hour} 최초 예측")
-            result_df = batch_predict(experiment_name='weather-predictor-018')
-            
-            # station_id 108번만 필터링
-            station_108 = result_df[result_df['station_id'] == '108'].iloc[0]
-            
-            # MySQL에 저장 (전체 지역)
-            save_prediction_to_mysql(result_df, current_hour)
-            
-            # 결과 추출 (station_id 108만)
-            comfort_score = station_108['predicted_comfort_score']
-            weather_data = {
-                'temperature': station_108.get('temperature'),
-                'humidity': station_108.get('humidity'),
-                'rainfall': station_108.get('rainfall'),
-                'pm10': station_108.get('pm10'),
-                'wind_speed': station_108.get('wind_speed'),
-                'pressure': station_108.get('pressure'),
-                'region': station_108.get('region'),
-                'station_id': station_108.get('station_id')
-            }
+        if not data:
+            # ❌ DB에 데이터 없음 (DAG 미실행)
+            raise HTTPException(
+                status_code=404, 
+                detail=f"예측 데이터가 준비되지 않았습니다. DAG 실행 후 다시 시도해주세요. (시간: {current_hour})"
+            )
+        
+        # ✅ DB 데이터 조회 성공
+        print(f"✅ DB 조회 성공: {current_hour}")
+        comfort_score = data['comfort_score']
+        weather_data = {
+            'temperature': data.get('temperature'),
+            'humidity': data.get('humidity'),
+            'rainfall': data.get('rainfall'),
+            'pm10': data.get('pm10'),
+            'wind_speed': data.get('wind_speed'),
+            'pressure': data.get('pressure'),
+            'region': data.get('region'),
+            'station_id': data.get('station_id')
+        }
         
         # 3. 응답 생성
         titles = {
