@@ -88,7 +88,11 @@ def split_and_scale_data(test_size=0.2, val_size=0.2, random_state=42):
     
     print("✅ 데이터 분할 및 스케일링 완료")
     
-    return X_train_scaled, X_val_scaled, X_test_scaled, y_train, y_val, y_test, scaler
+    # 원핫인코딩 후 피처 컬럼 목록 저장
+    feature_columns = list(X.columns)
+    
+    return X_train_scaled, X_val_scaled, X_test_scaled, y_train, y_val, y_test, scaler, feature_columns
+
 
 if __name__ == "__main__":
     split_and_scale_data()

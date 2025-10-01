@@ -47,5 +47,8 @@ fire==0.5.0
 # fastapi
 fastapi==0.110.0
 uvicorn[standard]==0.27.1
-# 테스트
-# pytest==8.0.2  # 현재 프로젝트에서는 직접 실행 방식 사용
+
+# MySQL
+pymysql==1.1.0
+cryptography==41.0.7
+

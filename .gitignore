@@ -278,6 +278,26 @@ docs/dag_plan.md
 # WANDB logs
 wandb/
 
+<<<<<<< HEAD
+# catboost logs
+catboost_info/
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.next/
+out/
+build/
+
+# Frontend specific
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+=======
 
 # catboost logs
 catboost_info/
+>>>>>>> origin/main2

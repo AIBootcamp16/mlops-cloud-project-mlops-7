@@ -1,0 +1,26 @@
+{
+  "name": "weather-frontend",
+  "version": "1.0.0",
+  "description": "출퇴근길 날씨 친구 - React Frontend",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "keywords": ["weather", "commute", "prediction", "react", "nextjs"],
+  "author": "Weather Team",
+  "license": "ISC",
+  "dependencies": {
+    "next": "^14.0.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "chart.js": "^4.4.0",
+    "react-chartjs-2": "^5.2.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.0.0",
+    "eslint-config-next": "^14.0.0"
+  }
+}

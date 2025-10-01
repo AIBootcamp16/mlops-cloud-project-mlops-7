@@ -4,10 +4,21 @@
 
 ## 💻 프로젝트 소개
 ### <프로젝트 소개>
+<<<<<<< HEAD
+
+- **날씨 쾌적지수 예측 시스템**: 머신러닝을 활용한 날씨 데이터 기반 쾌적도 예측 서비스
+
+### <작품 소개>
+- **FastAPI + Streamlit**: 실시간 날씨 데이터를 입력받아 쾌적지수(0-10점)를 예측하는 웹 서비스
+- **AWS S3 모델 저장소**: 최고 성능 모델을 S3에 저장하고 자동으로 로드
+- **Docker 기반**: 완전한 컨테이너화된 MLOps 파이프라인
+
+=======
 - _이번 프로젝트에 대해 소개를 작성해주세요_
 
 ### <작품 소개>
 - _만드신 작품에 대해 간단한 소개를 작성해주세요_
+>>>>>>> origin/main2
 
 <br>
 
@@ -49,6 +60,10 @@
 ├── docker-compose.yml          # Docker Compose file
 ├── pyproject.toml              # 메인 Poetry 설정
 └── README.md                   # 프로젝트 README
+<<<<<<< HEAD
+>>>>>>> origin/main2
+=======
+>>>>>>> origin/main2
 
 ```
 
@@ -100,6 +115,41 @@ docker push your-registry/weather-collector:v1.0.0
 
 <br>
 
+<<<<<<< HEAD
+
+## 🚀 실행 방법
+
+### 1. 환경 설정
+```bash
+# .env 파일 생성 (AWS 자격증명 필요)
+cp .env.example .env
+# .env 파일에 AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, S3_BUCKET 등 설정
+```
+
+### 2. Docker Compose로 전체 시스템 실행
+```bash
+# 전체 서비스 실행
+docker-compose up
+
+# 개별 서비스 실행
+docker-compose up api-server    # FastAPI 서버 (포트: 8000)
+docker-compose up streamlit     # Streamlit 웹앱 (포트: 8501)
+```
+
+### 3. 서비스 접속
+- **Streamlit 웹앱**: http://localhost:8501
+- **FastAPI 문서**: http://localhost:8000/docs
+- **API 상태 확인**: http://localhost:8000/health
+
+### 4. 모델 학습 (선택사항)
+```bash
+# 컨테이너 내에서 모델 학습
+docker-compose exec api-server python src/models/train.py
+```
+
+
+=======
+>>>>>>> origin/main2
 ## 📌 프로젝트 회고
 ### 박패캠
 - _프로젝트 회고를 작성해주세요_

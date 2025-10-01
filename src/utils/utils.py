@@ -187,6 +187,7 @@ def save_model_to_s3(model_data, bucket, base_path):
     files_to_save = {
         f"{base_path}/config/train_config.json": model_data.get("hyperparameters", {}),
         f"{base_path}/config/data_info.json": model_data.get("data_info", {}),
+        f"{base_path}/config/feature_columns.json": model_data.get("feature_columns", []),
         f"{base_path}/metadata/metrics.json": model_data.get("metrics", {}),
         f"{base_path}/metadata/experiment_log.json": {
             "experiment_name": model_data.get("experiment_name"),
