@@ -70,30 +70,18 @@ class WeatherDataS3Handler:
         self.s3_client = s3_client
 
     def save_raw_weather_data(self, data_type: str, raw_data: str, timestamp: datetime) -> str:
-        """원시 날씨 데이터 저장 (파티션 구조 사용)"""
-        # 파티션 구조로 경로 생성
-        year = timestamp.strftime("%Y")
-        month = timestamp.strftime("%m")
-        day = timestamp.strftime("%d")
-        time_str = timestamp.strftime("%H%M%S")
-
-        partition_path = f"year={year}/month={month}/day={day}"
-        key = f"raw/{data_type}/{partition_path}/{time_str}.txt"
+        """원시 날씨 데이터 저장 (고정 경로 덮어쓰기)"""
+        # 고정 경로로 항상 같은 파일에 저장
+        key = f"raw/{data_type}/latest.txt"
 
         self.s3_client.put_object(key, raw_data, content_type="text/plain")
         print(f"원시 데이터 저장: s3://{self.s3_client.bucket_name}/{key}")
         return key
 
     def save_parsed_weather_data(self, data_type: str, parsed_data: List[Dict], timestamp: datetime) -> str:
-        """파싱된 날씨 데이터 저장 (파티션 구조 사용)"""
-        # 파티션 구조로 경로 생성
-        year = timestamp.strftime("%Y")
-        month = timestamp.strftime("%m")
-        day = timestamp.strftime("%d")
-        time_str = timestamp.strftime("%H%M%S")
-
-        partition_path = f"year={year}/month={month}/day={day}"
-        key = f"processed/{data_type}/{partition_path}/{time_str}.json"
+        """파싱된 날씨 데이터 저장 (고정 경로 덮어쓰기)"""
+        # 고정 경로로 항상 같은 파일에 저장
+        key = f"processed/{data_type}/latest.json"
 
         json_data = json.dumps(parsed_data, ensure_ascii=False, default=str)
         self.s3_client.put_object(key, json_data, content_type="application/json")
@@ -101,19 +89,9 @@ class WeatherDataS3Handler:
         return key
 
     def save_ml_dataset(self, df: pd.DataFrame, timestamp: datetime, key_suffix: str = None) -> str:
-        """ML 데이터셋 저장 (파티션 구조 사용)"""
-        # 파티션 구조로 경로 생성
-        year = timestamp.strftime("%Y")
-        month = timestamp.strftime("%m")
-        day = timestamp.strftime("%d")
-        time_str = timestamp.strftime("%H%M%S")
-
-        partition_path = f"year={year}/month={month}/day={day}"
-
-        if key_suffix:
-            key = f"ml_dataset/{partition_path}/dataset_{time_str}_{key_suffix}.parquet"
-        else:
-            key = f"ml_dataset/{partition_path}/dataset_{time_str}.parquet"
+        """ML 데이터셋 저장 (고정 경로 덮어쓰기)"""
+        # 고정 경로로 항상 같은 파일에 저장
+        key = "ml_dataset/latest.parquet"
 
         buffer = io.BytesIO()
         df.to_parquet(buffer, index=False)
@@ -122,24 +100,16 @@ class WeatherDataS3Handler:
         return key
 
     def load_latest_ml_dataset(self, days_back: int = 7) -> Optional[pd.DataFrame]:
-        """최근 N일 내 최신 ML 데이터셋 로드"""
-        prefix = "ml_dataset/"
-        keys = self.s3_client.list_objects(prefix=prefix)
+        """최신 ML 데이터셋 로드 (고정 경로에서)"""
+        key = "ml_dataset/latest.parquet"
 
-        if not keys:
-            print("❌ ML 데이터셋이 존재하지 않습니다.")
+        try:
+            obj = self.s3_client.get_object(key)
+            print(f"📂 최신 ML 데이터셋 로드: {key}")
+            return pd.read_parquet(io.BytesIO(obj))
+        except Exception as e:
+            print(f"❌ ML 데이터셋 로드 실패: {e}")
             return None
-
-        parquet_keys = [k for k in keys if k.endswith(".parquet")]
-        if not parquet_keys:
-            print("❌ ML 데이터셋 parquet 파일 없음")
-            return None
-
-        latest_key = sorted(parquet_keys)[-1]
-        print(f"📂 최신 ML 데이터셋 로드: {latest_key}")
-
-        obj = self.s3_client.get_object(latest_key)
-        return pd.read_parquet(io.BytesIO(obj))
 
     def save_csv_to_s3(self, df: pd.DataFrame, key: str) -> str:
         """DataFrame을 CSV로 S3에 저장 (마스터 데이터용)"""
