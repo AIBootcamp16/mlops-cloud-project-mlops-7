@@ -1,0 +1,44 @@
+digraph {
+	fontname=Arial fontsize=10 rankdir=TB
+	collect [label="데이터 수집" fillcolor="#cce5ff" shape=box style="rounded,filled"]
+	api [label="KMA API 호출" shape=box]
+	collect -> api
+	asos_raw [label="ASOS 원시 데이터
+(XML/JSON)" shape=box]
+	pm10_raw [label="PM10 원시 데이터
+(XML/JSON)" shape=box]
+	api -> asos_raw
+	api -> pm10_raw
+	raw_s3 [label="S3 저장 (Raw Data Layer)
+ s3://bucket/raw/.../153045.txt" fillcolor="#f8f9fa" shape=box style=filled]
+	asos_raw -> raw_s3
+	pm10_raw -> raw_s3
+	parse [label="파싱 및 검증" shape=box]
+	raw_s3 -> parse
+	asos_parsed [label="ASOS 파싱 완료
+{station_id:100, temperature:22.5}" shape=box]
+	pm10_parsed [label="PM10 파싱 완료
+{station_id:100, pm10:45}" shape=box]
+	parse -> asos_parsed
+	parse -> pm10_parsed
+	processed_s3 [label="S3 저장 (Processed Data Layer)
+ s3://bucket/processed/.../153045.json" fillcolor="#f8f9fa" shape=box style=filled]
+	asos_parsed -> processed_s3
+	pm10_parsed -> processed_s3
+	feature [label="피처 엔지니어링
+(30개 피처 생성)" shape=box]
+	processed_s3 -> feature
+	ml_dataset [label="S3 저장 (ML Dataset Layer)
+ s3://bucket/ml_dataset/.../dataset_153045.parquet
+- 추론용: 24개 피처
+- 학습용: 25개 피처" fillcolor="#f8f9fa" shape=box style=filled]
+	feature -> ml_dataset
+	master_merge [label="마스터 데이터 병합
+(Rolling Window 21개월)" shape=box]
+	ml_dataset -> master_merge
+	master_dataset [label="S3 저장 (Master Dataset - 학습용)
+ s3://bucket/weather_pm10_integrated_full.csv
+- 21개월 전체 데이터 (630일)
+- 중복 제거 + 결측치 처리 완료" fillcolor="#f8f9fa" shape=box style=filled]
+	master_merge -> master_dataset
+}

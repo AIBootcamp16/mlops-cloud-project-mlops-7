@@ -91,7 +91,7 @@ class WeatherDataS3Handler:
     def save_ml_dataset(self, df: pd.DataFrame, timestamp: datetime, key_suffix: str = None) -> str:
         """ML 데이터셋 저장 (고정 경로 덮어쓰기)"""
         # 고정 경로로 항상 같은 파일에 저장
-        key = "mal_dataset/train/latest.parquet"
+        key = "ml_dataset/train/latest.parquet"
 
         buffer = io.BytesIO()
         df.to_parquet(buffer, index=False)
@@ -101,7 +101,7 @@ class WeatherDataS3Handler:
 
     def save_predict_dataset(self, df: pd.DataFrame, timestamp: datetime) -> str:
         """예측용 데이터셋 저장 (predict/ 폴더)"""
-        key = "mal_dataset/predict/latest.parquet"
+        key = "ml_dataset/predict/latest.parquet"
 
         buffer = io.BytesIO()
         df.to_parquet(buffer, index=False)
@@ -111,7 +111,7 @@ class WeatherDataS3Handler:
 
     def load_latest_ml_dataset(self, days_back: int = 7) -> Optional[pd.DataFrame]:
         """최신 ML 데이터셋 로드 (고정 경로에서)"""
-        key = "mal_dataset/train/latest.parquet"
+        key = "ml_dataset/train/latest.parquet"
 
         try:
             obj = self.s3_client.get_object(key)
@@ -123,7 +123,7 @@ class WeatherDataS3Handler:
 
     def load_predict_dataset(self) -> Optional[pd.DataFrame]:
         """예측용 데이터셋 로드"""
-        key = "mal_dataset/predict/latest.parquet"
+        key = "ml_dataset/predict/latest.parquet"
 
         try:
             obj = self.s3_client.get_object(key)
@@ -153,8 +153,8 @@ class WeatherDataS3Handler:
         inventory = {
             "raw_data": len(self.s3_client.list_objects(prefix="raw/")),
             "processed_data": len(self.s3_client.list_objects(prefix="processed/")),
-            "train_datasets": len(self.s3_client.list_objects(prefix="mal_dataset/train/")),
-            "predict_datasets": len(self.s3_client.list_objects(prefix="mal_dataset/predict/")),
+            "train_datasets": len(self.s3_client.list_objects(prefix="ml_dataset/train/")),
+            "predict_datasets": len(self.s3_client.list_objects(prefix="ml_dataset/predict/")),
             "master_data": len([k for k in self.s3_client.list_objects() if k.endswith('.csv')]),
             "total": len(self.s3_client.list_objects())
         }
