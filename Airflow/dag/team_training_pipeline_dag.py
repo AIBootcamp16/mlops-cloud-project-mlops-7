@@ -124,7 +124,16 @@ with DAG(
         _set_env(bucket=team_bucket, wandb_settings=wandb_settings)
         from src.models.split import split_and_scale_data
 
-        X_tr, X_val, X_te, y_tr, y_val, y_te, _ = split_and_scale_data(test_size=0.2, val_size=0.2)
+        (
+            X_tr,
+            X_val,
+            X_te,
+            y_tr,
+            y_val,
+            y_te,
+            _scaler,
+            feature_columns,
+        ) = split_and_scale_data(test_size=0.2, val_size=0.2)
         shapes = {
             "X_train": list(getattr(X_tr, "shape", (0, 0))),
             "X_val": list(getattr(X_val, "shape", (0, 0))),
@@ -132,6 +141,7 @@ with DAG(
             "y_train": int(len(y_tr)),
             "y_val": int(len(y_val)),
             "y_test": int(len(y_te)),
+            "feature_count": len(feature_columns),
         }
         print("Split shapes:", shapes)
         return shapes
@@ -248,4 +258,4 @@ with DAG(
     tune_info = tune_models_task()
     champion_info = promote_champion(train_info, tune_info)
 
-    raw_info >> processed_info >> verify_info >> split_info >> train_info >> tune_info
+    raw_info >> processed_info >> verify_info >> split_info >> train_info >> tune_info >> champion_info

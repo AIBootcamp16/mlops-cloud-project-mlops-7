@@ -1,5 +1,5 @@
 services:
-  # FastAPI 서버 (api 폴더 기반)
+  # FastAPI 서버 (services/api 폴더 기반)
   api-server:
     build:
       context: .
@@ -80,8 +80,8 @@ services:
       - WANDB_API_KEY=${WANDB_API_KEY}
       - WANDB_ENTITY=${WANDB_ENTITY}
       - WANDB_PROJECT=${WANDB_PROJECT}
+      - WANDB_DIR=/tmp/wandb
 
-      
     networks:
       - ml-network
 
@@ -89,14 +89,14 @@ services:
   mysql:
     image: mysql:8.0
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}  # 기본값 제거
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD} # 기본값 제거
       MYSQL_DATABASE: weather_mlops
       TZ: Asia/Seoul
     command: --default-time-zone='+09:00'
     volumes:
       - mysql_data:/var/lib/mysql
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-  # ports 제거 권장 (내부 통신만)
+    # ports 제거 권장 (내부 통신만)
     networks:
       - ml-network
     restart: unless-stopped
@@ -123,7 +123,7 @@ services:
     volumes:
       - airflow-postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U airflow"]
+      test: [ "CMD-SHELL", "pg_isready -U airflow" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -151,13 +151,10 @@ services:
       - WANDB_PROJECT=${WANDB_PROJECT}
       - WANDB_MODE=${WANDB_MODE}
     user: "0:0"
-    entrypoint: ["bash", "-c"]
+    entrypoint: [ "bash", "-c" ]
     command:
       - >-
-        apt-get update && apt-get install -y libgomp1 &&
-        su airflow -c "pip install --no-cache-dir -r /opt/airflow/requirements.txt" &&
-        su airflow -c "airflow db init" &&
-        su airflow -c "airflow users create --username admin --firstname Admin --lastname User --role Admin --email admin@example.com --password admin" || true
+        apt-get update && apt-get install -y libgomp1 && su airflow -c "pip install --no-cache-dir -r /opt/airflow/requirements.txt" && su airflow -c "airflow db init" && su airflow -c "airflow users create --username admin --firstname Admin --lastname User --role Admin --email admin@example.com --password admin" || true
     volumes:
       - ./Airflow/dag:/opt/airflow/dags
       - ./src:/opt/airflow/src
@@ -192,12 +189,10 @@ services:
       - WANDB_PROJECT=${WANDB_PROJECT}
       - WANDB_MODE=${WANDB_MODE}
     user: "0:0"
-    entrypoint: ["bash", "-c"]
+    entrypoint: [ "bash", "-c" ]
     command:
       - >-
-        apt-get update && apt-get install -y libgomp1 &&
-        su airflow -c "pip install --no-cache-dir -r /opt/airflow/requirements.txt" &&
-        su airflow -c "airflow webserver"
+        apt-get update && apt-get install -y libgomp1 && su airflow -c "pip install --no-cache-dir -r /opt/airflow/requirements.txt" && su airflow -c "airflow webserver"
     ports:
       - "8080:8080"
     volumes:
@@ -233,12 +228,10 @@ services:
       - WANDB_PROJECT=${WANDB_PROJECT}
       - WANDB_MODE=${WANDB_MODE}
     user: "0:0"
-    entrypoint: ["bash", "-c"]
+    entrypoint: [ "bash", "-c" ]
     command:
       - >-
-        apt-get update && apt-get install -y libgomp1 &&
-        su airflow -c "pip install --no-cache-dir -r /opt/airflow/requirements.txt" &&
-        su airflow -c "airflow scheduler"
+        apt-get update && apt-get install -y libgomp1 && su airflow -c "pip install --no-cache-dir -r /opt/airflow/requirements.txt" && su airflow -c "airflow scheduler"
     volumes:
       - ./Airflow/dag:/opt/airflow/dags
       - ./src:/opt/airflow/src
@@ -253,8 +246,5 @@ networks:
     driver: bridge
 
 volumes:
-
   mysql_data:
-
   airflow-postgres-data:
-
