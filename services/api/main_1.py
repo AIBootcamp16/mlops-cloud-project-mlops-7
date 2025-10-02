@@ -4,7 +4,7 @@ sys.path.append('/app')
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from datetime import datetime, timedelta  # 👈 timedelta 추가!
+from datetime import datetime
 import pytz
 
 from src.utils.mysql_utils import query_prediction_by_datetime
@@ -31,7 +31,7 @@ def root():
     return {
         "message": "Weather Comfort Score API v0.1.0 실행 중!",
         "description": "batch_predict.py 기반 쾌적지수 예측 API",
-        "endpoints": ["/predict/now", "/predict/morning", "/predict/evening", "/predict/hourly/{type}", "/health"]
+        "endpoints": ["/predict/now", "/predict/morning", "/predict/evening", "/health"]
     }
 
 @app.get("/health")
@@ -59,10 +59,10 @@ def get_comfort_score(prediction_type: str):
                 detail="출근길 쾌적지수는 오전 6시부터 9시 사이에만 볼 수 있어요."
             )
         
-        if prediction_type == "evening" and not (17 <= current_hour < 21):
+        if prediction_type == "evening" and not (14 <= current_hour < 22):
             raise HTTPException( 
                 status_code=400,
-                detail="퇴근길 쾌적지수는 오후 5시부터 9시 사이에만 볼 수 있어요."
+                detail="퇴근길 쾌적지수는 오후 5시부터 10시 사이에만 볼 수 있어요."
             )
         
         # 현재 시간 데이터 조회
@@ -125,42 +125,6 @@ def get_comfort_score(prediction_type: str):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"예측 중 오류 발생: {str(e)}")
-
-@app.get("/predict/hourly/{prediction_type}")
-def get_hourly_data(prediction_type: str):
-    """시간별 데이터 가져오기 (최근 6시간)"""
-    if prediction_type not in ["now", "morning", "evening"]:
-        raise HTTPException(status_code=400, detail="prediction_type은 now, morning, evening 중 하나여야 합니다")
-    
-    try:
-        kst = pytz.timezone('Asia/Seoul')
-        current_time = datetime.now(kst)
-        
-        hourly_list = []
-        for i in range(6):
-            target_time = current_time - timedelta(hours=i)
-            target_hour_dt = target_time.replace(minute=0, second=0, microsecond=0)
-            
-            data = query_prediction_by_datetime(target_hour_dt)
-            if data:
-                hourly_list.append({
-                    'time': target_hour_dt.strftime("%H시"),
-                    'temperature': data.get('temperature'),
-                    'pm10': data.get('pm10'),
-                    'humidity': data.get('humidity'),
-                    'rainfall': data.get('rainfall')
-                })
-        
-        hourly_list.reverse()
-        
-        return {
-            "hourly": hourly_list,
-            "count": len(hourly_list),
-            "status": "success"
-        }
-        
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"시간별 데이터 조회 오류: {str(e)}")
 
 @app.get("/api/welcome")
 def get_welcome_message():
