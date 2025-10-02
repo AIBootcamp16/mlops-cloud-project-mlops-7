@@ -6,15 +6,26 @@ USER root
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 USER airflow
 
-# requirements 복사 및 설치
-COPY requirements.txt /requirements.txt
-RUN pip install --no-cache-dir -r /requirements.txt
+# requirements 먼저 복사 및 설치 (캐싱 최적화)
+COPY --chown=airflow:root services/batch/requirements.txt /opt/airflow/requirements.txt
+RUN pip install --no-cache-dir -r /opt/airflow/requirements.txt
 
-# 프로젝트 코드 복사
-COPY . /opt/airflow/
+# DAG 파일 복사
+COPY --chown=airflow:root services/batch/dags /opt/airflow/dags
+
+# jobs 폴더 복사
+COPY --chown=airflow:root services/batch/jobs /opt/airflow/jobs
+
+# src/utils만 복사
+COPY --chown=airflow:root src/utils /opt/airflow/src/utils
 
 WORKDIR /opt/airflow
+
+# 헬스체크
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
