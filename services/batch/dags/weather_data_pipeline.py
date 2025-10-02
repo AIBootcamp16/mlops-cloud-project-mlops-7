@@ -13,16 +13,20 @@ Author: MLOps Team
 """
 
 from datetime import datetime, timedelta
+from pathlib import Path
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.operators.dummy import DummyOperator
 import sys
-import os
 
-# Add project source to Python path
-sys.path.append('/opt/airflow/dags')
-sys.path.append('/opt/airflow/src')
-sys.path.append('/opt/airflow')
+# Add project source and local jobs to Python path
+BASE_DIR = Path(__file__).resolve().parent
+BATCH_DIR = BASE_DIR.parent
+JOBS_DIR = BATCH_DIR / "jobs"
+PROJECT_ROOT = BASE_DIR.parents[2]
+
+for path in {JOBS_DIR, PROJECT_ROOT / "src"}:
+    sys.path.append(str(path))
 
 # Default arguments for all tasks
 default_args = {
@@ -50,9 +54,9 @@ def fetch_kma_weather_data(**context):
     """
     Fetch weather data from KMA API for all data types (ASOS, PM10, UV).
     """
-    from src.data_ingestion.weather_processor import WeatherDataProcessor
+    from jobs.data.weather_processor import WeatherDataProcessor
     from src.utils.config import KMAApiConfig, S3Config
-    from src.storage.s3_client import S3StorageClient, WeatherDataS3Handler
+    from jobs.storage.s3_client import S3StorageClient, WeatherDataS3Handler
     from datetime import datetime
 
     print("=== Starting KMA API data fetch ===")
@@ -109,9 +113,9 @@ def generate_ml_dataset(**context):
     """
     Generate ML dataset with 30 engineered features from fetched weather data.
     """
-    from src.features.feature_builder import create_ml_dataset
+    from jobs.features.feature_builder import create_ml_dataset
     from src.utils.config import S3Config
-    from src.storage.s3_client import S3StorageClient, WeatherDataS3Handler
+    from jobs.storage.s3_client import S3StorageClient, WeatherDataS3Handler
     from datetime import datetime
 
     print("=== Starting ML dataset generation ===")
@@ -170,7 +174,7 @@ def append_to_master_csv(**context):
     Rolling Window is applied weekly by master_data_update_dag.
     """
     from src.utils.config import S3Config
-    from src.storage.s3_client import S3StorageClient, WeatherDataS3Handler
+    from jobs.storage.s3_client import S3StorageClient, WeatherDataS3Handler
     import pandas as pd
 
     print("=== Appending hourly data to master CSV ===")
@@ -276,7 +280,7 @@ def validate_pipeline_success(**context):
     Validate that the entire pipeline completed successfully.
     """
     from src.utils.config import S3Config
-    from src.storage.s3_client import S3StorageClient, WeatherDataS3Handler
+    from jobs.storage.s3_client import S3StorageClient, WeatherDataS3Handler
 
     print("=== Validating pipeline success ===")
 

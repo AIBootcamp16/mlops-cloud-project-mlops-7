@@ -14,16 +14,19 @@ Author: MLOps Team
 """
 
 from datetime import datetime, timedelta
+from pathlib import Path
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.operators.dummy import DummyOperator
 import sys
-import os
 
-# Add project source to Python path
-sys.path.append('/opt/airflow/dags')
-sys.path.append('/opt/airflow/src')
-sys.path.append('/opt/airflow')
+BASE_DIR = Path(__file__).resolve().parent
+BATCH_DIR = BASE_DIR.parent
+PROJECT_ROOT = BASE_DIR.parents[2]
+JOBS_DIR = BATCH_DIR / "jobs"
+
+for path in {JOBS_DIR, PROJECT_ROOT / "src"}:
+    sys.path.append(str(path))
 
 # Default arguments for all tasks
 default_args = {
@@ -53,7 +56,7 @@ def apply_rolling_window(**context):
     Removes old data, duplicates, and sorts records.
     """
     from src.utils.config import S3Config
-    from src.storage.s3_client import S3StorageClient, WeatherDataS3Handler
+    from jobs.storage.s3_client import S3StorageClient, WeatherDataS3Handler
     from datetime import datetime, timedelta
     import pandas as pd
 
@@ -147,7 +150,7 @@ def validate_cleanup(**context):
     Validate that Rolling Window cleanup completed successfully.
     """
     from src.utils.config import S3Config
-    from src.storage.s3_client import S3StorageClient, WeatherDataS3Handler
+    from jobs.storage.s3_client import S3StorageClient, WeatherDataS3Handler
     import pandas as pd
 
     print("=== Validating Rolling Window cleanup ===")
