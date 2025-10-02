@@ -1,0 +1,63 @@
+# Git
+.git/
+.gitignore
+.gitkeep
+
+# Python 캐시
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.pyc
+
+# 환경 설정 (민감 정보)
+.env
+.env.example
+
+# IDE
+.vscode/
+.idea/
+
+# 필요 없는 서비스
+services/api/
+services/frontend/
+
+# 필요 없는 최상위 폴더
+Airflow_dag/
+data/
+docs/
+logs/
+notebooks/
+plugins/
+training/
+tests/
+
+# Docker 파일들 (이미지에 불필요)
+dockerfiles/
+docker-compose*.yml
+Dockerfile*
+.dockerignore
+
+# 데이터 파일
+*.csv
+*.parquet
+*.json
+!requirements.txt
+!requirements-airflow.txt
+
+# 스크립트
+run_s3_layer_test.sh
+
+# 기타
+*.log
+*.md
+!README.md
+init.sql
+pyproject.toml
+
+
+requirements-airflow.txt

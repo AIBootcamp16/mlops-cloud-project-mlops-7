@@ -66,15 +66,20 @@ services:
     working_dir: /app
     env_file: .env
     environment:
+      - WEATHER_API_KEY=${WEATHER_API_KEY}
+      - WANDB_MODE=${WANDB_MODE}
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - AWS_REGION=${AWS_REGION}
       - S3_BUCKET=${S3_BUCKET}
-      - WEATHER_API_KEY=${WEATHER_API_KEY}
+      - MYSQL_HOST=${MYSQL_HOST}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - CHAMPION_MODEL=${CHAMPION_MODEL}
       - WANDB_API_KEY=${WANDB_API_KEY}
       - WANDB_ENTITY=${WANDB_ENTITY}
       - WANDB_PROJECT=${WANDB_PROJECT}
-      - WANDB_DIR=/tmp/wandb
 
       
     networks:
@@ -84,17 +89,17 @@ services:
   mysql:
     image: mysql:8.0
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-mlops2025}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}  # 기본값 제거
       MYSQL_DATABASE: weather_mlops
       TZ: Asia/Seoul
     command: --default-time-zone='+09:00'
     volumes:
       - mysql_data:/var/lib/mysql
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-    ports:
-      - "3307:3306"
+  # ports 제거 권장 (내부 통신만)
     networks:
       - ml-network
+    restart: unless-stopped
 
   # phpMyAdmin (웹 기반 MySQL 관리)
   phpmyadmin:
