@@ -13,11 +13,8 @@ RUN npm install
 # 소스 코드 복사
 COPY . .
 
-# Next.js 빌드 (프로덕션용)
-RUN npm run build
-
 # 포트 3000 노출
 EXPOSE 3000
 
-# 프로덕션 서버 실행
-CMD ["npm", "start"] 
+# 개발 서버 실행 (hot reload 지원)
+CMD ["npm", "run", "dev"] 

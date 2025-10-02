@@ -10,7 +10,6 @@ export default function Home() {
   const lineChartRef = useRef(null);
   const chartInstance = useRef(null);
   const lineChartInstance = useRef(null);
-  const clockRef = useRef(null);
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -260,133 +259,6 @@ export default function Home() {
     }
   };
 
-  // 시계 초기화 (에러 메시지 표시 시)
-  useEffect(() => {
-    if (!result?.error || !clockRef.current || !showResult) return;
-
-    const initClock = () => {
-      const root = clockRef.current;
-      if (!root) return;
-      root.innerHTML = ''; // 기존 시계 제거
-
-      const SVG_NS = 'http://www.w3.org/2000/svg';
-      const vb = 280, cx = vb/2, cy = vb/2;
-      const rHour = 92, rMin = 106, rSec = 120;
-      const strokeW = { bg: 10, hour: 10, min: 8, sec: 4 };
-
-      const svg = document.createElementNS(SVG_NS, 'svg');
-      svg.setAttribute('viewBox', `0 0 ${vb} ${vb}`);
-
-      // 그라디언트
-      const defs = document.createElementNS(SVG_NS, 'defs');
-      const createGrad = (id, c1, c2) => {
-        const g = document.createElementNS(SVG_NS, 'linearGradient');
-        g.setAttribute('id', id);
-        g.setAttribute('x1', '0%'); g.setAttribute('y1', '0%');
-        g.setAttribute('x2', '100%'); g.setAttribute('y2', '100%');
-        const s1 = document.createElementNS(SVG_NS, 'stop');
-        s1.setAttribute('offset', '0%'); s1.setAttribute('stop-color', c1);
-        const s2 = document.createElementNS(SVG_NS, 'stop');
-        s2.setAttribute('offset', '100%'); s2.setAttribute('stop-color', c2);
-        g.append(s1, s2);
-        return g;
-      };
-      defs.append(
-        createGrad('gradHour', '#9b87f5', '#62d26f'),
-        createGrad('gradMin', '#7aa2ff', '#04d4f0'),
-        createGrad('gradSec', '#ffd54f', '#ff8a47')
-      );
-
-      // 배경 원
-      const face = document.createElementNS(SVG_NS, 'circle');
-      face.setAttribute('cx', cx); face.setAttribute('cy', cy); face.setAttribute('r', 128);
-      face.setAttribute('class', 'clock-face');
-
-      // 눈금
-      const ticks = document.createElementNS(SVG_NS, 'g');
-      ticks.setAttribute('class', 'clock-ticks');
-      for (let i = 0; i < 12; i++) {
-        const a = (i / 12) * Math.PI * 2;
-        const r1 = 118, r2 = 126;
-        const line = document.createElementNS(SVG_NS, 'line');
-        line.setAttribute('x1', cx + Math.cos(a) * r1);
-        line.setAttribute('y1', cy + Math.sin(a) * r1);
-        line.setAttribute('x2', cx + Math.cos(a) * r2);
-        line.setAttribute('y2', cy + Math.sin(a) * r2);
-        ticks.appendChild(line);
-      }
-
-      // 링
-      const C = k => 2 * Math.PI * k;
-      const createRing = (r, cls, width) => {
-        const c = document.createElementNS(SVG_NS, 'circle');
-        c.setAttribute('cx', cx); c.setAttribute('cy', cy); c.setAttribute('r', r);
-        c.setAttribute('fill', 'none'); c.setAttribute('stroke-width', width);
-        c.setAttribute('class', cls);
-        c.setAttribute('stroke-dasharray', C(r));
-        c.setAttribute('stroke-dashoffset', C(r));
-        c.setAttribute('transform', `rotate(-90, ${cx}, ${cy})`);
-        return c;
-      };
-      const ringHour = createRing(rHour, 'clock-ring-hour', strokeW.hour);
-      const ringMin = createRing(rMin, 'clock-ring-min', strokeW.min);
-      const ringSec = createRing(rSec, 'clock-ring-sec', strokeW.sec);
-
-      // 바늘
-      const createHand = (cls, y2) => {
-        const h = document.createElementNS(SVG_NS, 'line');
-        h.setAttribute('x1', cx); h.setAttribute('y1', cy);
-        h.setAttribute('x2', cx); h.setAttribute('y2', y2);
-        h.setAttribute('class', cls);
-        return h;
-      };
-      const handHour = createHand('clock-hand-hour', cy - 60);
-      const handMin = createHand('clock-hand-min', cy - 84);
-      const handSec = createHand('clock-hand-sec', cy - 96);
-
-      // 중심
-      const pin = document.createElementNS(SVG_NS, 'circle');
-      pin.setAttribute('cx', cx); pin.setAttribute('cy', cy); pin.setAttribute('r', 3.6);
-      pin.setAttribute('class', 'clock-pin');
-
-      svg.append(defs, face, ticks, ringHour, ringMin, ringSec, handHour, handMin, handSec, pin);
-      root.appendChild(svg);
-
-      // 시계 업데이트
-      const circ = { h: C(rHour), m: C(rMin), s: C(rSec) };
-      let animationId;
-
-      const update = () => {
-        const now = new Date();
-        const ms = now.getMilliseconds();
-        const s = now.getSeconds() + ms / 1000;
-        const m = now.getMinutes() + s / 60;
-        const h12 = (now.getHours() % 12) + m / 60;
-
-        handSec.style.transform = `rotate(${(s / 60) * 360}deg)`;
-        handSec.style.transformOrigin = `${cx}px ${cy}px`;
-        handMin.style.transform = `rotate(${(m / 60) * 360}deg)`;
-        handMin.style.transformOrigin = `${cx}px ${cy}px`;
-        handHour.style.transform = `rotate(${(h12 / 12) * 360}deg)`;
-        handHour.style.transformOrigin = `${cx}px ${cy}px`;
-
-        ringSec.style.strokeDashoffset = circ.s * (1 - s / 60);
-        ringMin.style.strokeDashoffset = circ.m * (1 - m / 60);
-        ringHour.style.strokeDashoffset = circ.h * (1 - h12 / 12);
-
-        animationId = requestAnimationFrame(update);
-      };
-      animationId = requestAnimationFrame(update);
-
-      return () => {
-        if (animationId) cancelAnimationFrame(animationId);
-      };
-    };
-
-    const cleanup = initClock();
-    return cleanup;
-  }, [result, showResult]);
-
   const getPrediction = async (type) => {
     setLoading(true);
     setResult(null);
@@ -446,9 +318,9 @@ export default function Home() {
 
     if (result.error) {
       return (
-        <div className={`result-box error-with-clock ${showResult ? 'show' : ''}`}>
+        <div className={`result-box ${showResult ? 'show' : ''}`}>
+          <div className="error-icon">⏰</div>
           <div className="error-details">{result.error}</div>
-          <div ref={clockRef} className="round-clock" aria-label="live clock"></div>
         </div>
       );
     }
@@ -551,7 +423,7 @@ export default function Home() {
         <header className="header">
           <div className="header-icon">🌤️</div>
           <h1>출퇴근길 날씨 친구</h1>
-          <p className="subtitle">출퇴근길 쾌적지수 예측 서비스</p>
+          <p className="subtitle">실시간 쾌적지수 예측 서비스</p>
         </header>
 
         <div className="buttons">
@@ -759,13 +631,10 @@ export default function Home() {
         }
 
         .error-details {
-          color: white;
+          color: #FFD4A3;
           text-align: center;
-          font-size: 1.3em;
-          font-weight: 600;
-          margin-bottom: 20px;
-          line-height: 1.6;
-          text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+          font-size: 0.95em;
+          opacity: 0.9;
         }
 
         .comfort-section {
@@ -929,11 +798,6 @@ export default function Home() {
             height: 240px;
           }
 
-          .round-clock {
-            width: 400px;
-            height: 400px;
-          }
-
           .weather-title {
             font-size: 1.3em;
             margin-bottom: 25px;
@@ -952,11 +816,6 @@ export default function Home() {
           .gauge-container {
             width: 200px;
             height: 200px;
-          }
-
-          .round-clock {
-            width: 350px;
-            height: 350px;
           }
 
           .chart-wrapper {
@@ -1055,66 +914,6 @@ export default function Home() {
           font-weight: 700;
           display: block;
           text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
-        }
-
-        /* 시계 스타일 */
-        .round-clock {
-          width: 500px;
-          height: 500px;
-          position: relative;
-          margin: 30px auto 20px;
-          filter: drop-shadow(0 10px 30px rgba(0,0,0,.25));
-        }
-        .round-clock svg {
-          width: 100%;
-          height: 100%;
-          display: block;
-        }
-        .clock-face {
-          fill: rgba(255,255,255,.08);
-          stroke: rgba(255,255,255,.15);
-          stroke-width: 1.5;
-        }
-        .clock-ticks line {
-          stroke: rgba(255,255,255,.35);
-          stroke-width: 2;
-        }
-        .clock-ring-hour {
-          stroke: url(#gradHour);
-        }
-        .clock-ring-min {
-          stroke: url(#gradMin);
-        }
-        .clock-ring-sec {
-          stroke: url(#gradSec);
-          opacity: 0.95;
-        }
-        .clock-hand-hour, .clock-hand-min, .clock-hand-sec {
-          transition: transform 50ms linear;
-        }
-        .clock-hand-hour {
-          stroke: #fff;
-          stroke-width: 5;
-          stroke-linecap: round;
-        }
-        .clock-hand-min {
-          stroke: #fff;
-          stroke-width: 3.5;
-          stroke-linecap: round;
-          opacity: 0.95;
-        }
-        .clock-hand-sec {
-          stroke: #ffd54f;
-          stroke-width: 2;
-          stroke-linecap: round;
-        }
-        .clock-pin {
-          fill: #fff;
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .clock-hand-hour, .clock-hand-min, .clock-hand-sec {
-            transition: none;
-          }
         }
       `}</style>
 

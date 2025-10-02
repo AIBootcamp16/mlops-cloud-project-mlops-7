@@ -59,10 +59,10 @@ def get_comfort_score(prediction_type: str):
                 detail="출근길 쾌적지수는 오전 6시부터 9시 사이에만 볼 수 있어요."
             )
         
-        if prediction_type == "evening" and not (17 <= current_hour < 21):
+        if prediction_type == "evening" and not (14 <= current_hour < 22):
             raise HTTPException( 
                 status_code=400,
-                detail="퇴근길 쾌적지수는 오후 5시부터 9시 사이에만 볼 수 있어요."
+                detail="퇴근길 쾌적지수는 오후 5시부터 10시 사이에만 볼 수 있어요."
             )
         
         # 현재 시간 데이터 조회
