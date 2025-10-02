@@ -1,0 +1,47 @@
+FROM python:3.11-slim
+
+# 비root 사용자 생성
+RUN useradd -m -u 1000 appuser
+
+WORKDIR /app
+
+# 시스템 패키지 설치
+RUN apt-get update && apt-get install -y \
+    gcc \
+    default-libmysqlclient-dev \
+    pkg-config \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Python 의존성 설치
+COPY services/api/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# 필요한 코드만 복사
+COPY services/api /app/api
+COPY src/utils/mysql_utils.py /app/src/utils/mysql_utils.py
+
+# 소유권 변경
+RUN chown -R appuser:appuser /app
+
+# 비root 사용자로 전환
+USER appuser
+
+# 환경변수 설정
+ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
+
+# 포트 노출
+EXPOSE 8000
+
+# 헬스체크
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# 프로덕션용 실행 (워커 4개, 액세스 로그)
+CMD ["uvicorn", "api.main:app", \
+     "--host", "0.0.0.0", \
+     "--port", "8000", \
+     "--workers", "4", \
+     "--log-level", "info", \
+     "--access-log"]

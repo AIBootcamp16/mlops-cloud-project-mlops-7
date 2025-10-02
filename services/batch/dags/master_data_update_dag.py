@@ -56,7 +56,7 @@ def apply_rolling_window(**context):
     Removes old data, duplicates, and sorts records.
     """
     from src.utils.config import S3Config
-    from jobs.storage.s3_client import S3StorageClient, WeatherDataS3Handler
+    from jobs.s3_client import S3StorageClient, WeatherDataS3Handler
     from datetime import datetime, timedelta
     import pandas as pd
 
@@ -150,7 +150,7 @@ def validate_cleanup(**context):
     Validate that Rolling Window cleanup completed successfully.
     """
     from src.utils.config import S3Config
-    from jobs.storage.s3_client import S3StorageClient, WeatherDataS3Handler
+    from jobs.s3_client import S3StorageClient, WeatherDataS3Handler
     import pandas as pd
 
     print("=== Validating Rolling Window cleanup ===")

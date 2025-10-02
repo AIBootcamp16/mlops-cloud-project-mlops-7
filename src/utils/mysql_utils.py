@@ -21,10 +21,11 @@ def query_prediction_by_datetime(prediction_datetime: datetime, station_id: str 
 def get_mysql_connection():
     """MySQL 연결"""
     return pymysql.connect(
-        host=os.getenv('MYSQL_HOST', 'mysql'),
-        user=os.getenv('MYSQL_USER', 'root'),
-        password=os.getenv('MYSQL_ROOT_PASSWORD'),
-        database=os.getenv('MYSQL_DATABASE', 'weather_mlops'),
+        host=os.getenv('DB_HOST', 'localhost'),
+        port=int(os.getenv('DB_PORT', 3306)),
+        user=os.getenv('DB_USER', 'root'),
+        password=os.getenv('DB_PASSWORD'),
+        database=os.getenv('DB_NAME', 'weather'),
         charset='utf8mb4',
         cursorclass=pymysql.cursors.DictCursor
-    )        
+    )       

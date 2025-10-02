@@ -54,9 +54,9 @@ def fetch_kma_weather_data(**context):
     """
     Fetch weather data from KMA API for all data types (ASOS, PM10, UV).
     """
-    from jobs.data.weather_processor import WeatherDataProcessor
+    from jobs.weather_processor import WeatherDataProcessor
     from src.utils.config import KMAApiConfig, S3Config
-    from jobs.storage.s3_client import S3StorageClient, WeatherDataS3Handler
+    from jobs.s3_client import S3StorageClient, WeatherDataS3Handler
     from datetime import datetime
 
     print("=== Starting KMA API data fetch ===")
@@ -113,9 +113,9 @@ def generate_ml_dataset(**context):
     """
     Generate ML dataset with 30 engineered features from fetched weather data.
     """
-    from jobs.features.feature_builder import create_ml_dataset
+    from jobs.feature_builder import create_ml_dataset
     from src.utils.config import S3Config
-    from jobs.storage.s3_client import S3StorageClient, WeatherDataS3Handler
+    from jobs.s3_client import S3StorageClient, WeatherDataS3Handler
     from datetime import datetime
 
     print("=== Starting ML dataset generation ===")
@@ -174,7 +174,7 @@ def append_to_master_csv(**context):
     Rolling Window is applied weekly by master_data_update_dag.
     """
     from src.utils.config import S3Config
-    from jobs.storage.s3_client import S3StorageClient, WeatherDataS3Handler
+    from jobs.s3_client import S3StorageClient, WeatherDataS3Handler
     import pandas as pd
 
     print("=== Appending hourly data to master CSV ===")
@@ -280,7 +280,7 @@ def validate_pipeline_success(**context):
     Validate that the entire pipeline completed successfully.
     """
     from src.utils.config import S3Config
-    from jobs.storage.s3_client import S3StorageClient, WeatherDataS3Handler
+    from jobs.s3_client import S3StorageClient, WeatherDataS3Handler
 
     print("=== Validating pipeline success ===")
 
