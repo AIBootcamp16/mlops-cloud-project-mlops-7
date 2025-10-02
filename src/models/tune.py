@@ -53,8 +53,19 @@ def tune_hyperparameters(
     print(f"🚀 [{model_name.upper()}] 튜닝 시작: {exp_name} ({search_type})")
     
     # 3. 데이터 로드 및 결합
-    X_train, X_val, X_test, y_train, y_val, y_test, scaler = split_and_scale_data(
-        test_size=test_size, val_size=val_size, random_state=random_state
+    (
+        X_train,
+        X_val,
+        X_test,
+        y_train,
+        y_val,
+        y_test,
+        scaler,
+        feature_columns,
+    ) = split_and_scale_data(
+        test_size=test_size,
+        val_size=val_size,
+        random_state=random_state,
     )
     X_train_full = np.vstack([X_train, X_val])
     y_train_full = np.hstack([y_train, y_val])
@@ -148,7 +159,7 @@ def tune_hyperparameters(
             "model_type": "regression_tuned",
             "train_samples": len(y_train_full),
             "test_samples": len(y_test),
-            "features": X_train_full.shape[1],
+            "features": len(feature_columns),
         },
         "requirements": get_requirements(),
     }
