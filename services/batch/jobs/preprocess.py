@@ -5,13 +5,6 @@ def preprocess_for_prediction(df, feature_columns):
     """split.py와 동일한 후처리 로직 + 컬럼 맞추기"""
     print("🔧 전처리 시작")
     
-    # 카테고리 이름 통일
-    if 'pm10_grade' in df.columns:
-        df['pm10_grade'] = df['pm10_grade'].replace({
-            'unhealthy': 'bad',
-            'very_unhealthy': 'very_bad'
-        })
-
     # 타겟 제외
     target_col = "comfort_score"
     exclude_cols = [target_col, "pm10", "datetime", "station_id"]
