@@ -14,10 +14,10 @@ if project_root not in sys.path:
 
 from src.utils.logger_config import configure_logger
 from src.utils.config import KMAApiConfig, S3Config
-from jobs.data.kma_client import KMAApiClient
-from jobs.storage.s3_client import S3StorageClient, WeatherDataS3Handler
-from jobs.features.feature_builder import create_ml_dataset
-from jobs.data import parsers
+from jobs.kma_client import KMAApiClient
+from services.batch.jobs.s3_client import S3StorageClient, WeatherDataS3Handler
+from jobs.feature_builder import create_ml_dataset
+from jobs import parsers
 
 _logger = configure_logger(__name__)
 

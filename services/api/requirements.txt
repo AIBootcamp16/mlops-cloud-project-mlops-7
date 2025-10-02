@@ -1,0 +1,28 @@
+# services/api/requirements.txt
+
+# ===== API Framework =====
+fastapi==0.110.0
+uvicorn[standard]==0.27.1
+python-multipart==0.0.6
+
+# ===== Database =====
+pymysql==1.1.0
+cryptography==41.0.7
+
+# ===== Data Processing =====
+pandas==2.2.0
+numpy==1.26.3
+
+# ===== Environment & Config =====
+python-dotenv==1.0.1
+pydantic==2.6.1
+
+# ===== Date/Time =====
+python-dateutil==2.8.2
+
+# ===== Logging =====
+loguru==0.7.2
+
+# ===== API 호출 (외부 API 연동 시) =====
+requests==2.31.0
+tenacity==8.2.3

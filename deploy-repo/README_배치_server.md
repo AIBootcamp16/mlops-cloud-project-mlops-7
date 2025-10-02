@@ -88,7 +88,7 @@ cd ~/weather-batch
 
 ### .env.example 다운로드
 curl -o .env.example \
-  https://raw.githubusercontent.com/your-username/MLOPS-CLOUD-PROJECT-MLOPS-7/main/deploy-repo/.env.example
+  https://raw.githubusercontent.com/your-username/MLOPS-CLOUD-PROJECT-MLOPS-7/main2/deploy-repo/.env.example
 
 ### README.md
 curl -o README.md \
