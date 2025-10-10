@@ -86,7 +86,7 @@ docker tag weather-collector:v1.0.0 your-registry/weather-collector:v1.0.0
 docker push your-registry/weather-collector:v1.0.0
 <br>
 
-<br>
+
 
 ## 💻​ 구현 기능
 - 데이터 수집 및 전처리
@@ -94,13 +94,16 @@ docker push your-registry/weather-collector:v1.0.0
 - MLOps 파이프라인 구축
 - FastAPI 및 프론트엔드 개발
 - Vercel에 배포
-<br>
+
 
 
 ## 목표 아키텍처
+
 <img width="386" height="534" alt="image" src="https://github.com/user-attachments/assets/70f72b48-fc3e-4b5d-85f0-3d393419c959" />
+
 ## 실제 아키텍처
 <img width="311" height="537" alt="image" src="https://github.com/user-attachments/assets/2303e38d-aa07-4fe4-8eeb-2621b9c03303" />
+
 ## 구현한 아키텍처
 <img width="393" height="414" alt="image" src="https://github.com/user-attachments/assets/61282b50-517d-4c59-b150-028bcdc32348" />
 
