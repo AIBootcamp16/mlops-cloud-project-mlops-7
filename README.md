@@ -26,7 +26,8 @@
 | ![안현태](https://avatars.githubusercontent.com/u/156163982?v=4) | ![문서연](https://avatars.githubusercontent.com/u/156163982?v=4) | ![손은혜](https://avatars.githubusercontent.com/u/156163982?v=4) | ![정용재](https://avatars.githubusercontent.com/u/156163982?v=4) | ![주예령](https://avatars.githubusercontent.com/u/156163982?v=4) |
 | :--------------------------------------------------------------: | :--------------------------------------------------------------: | :--------------------------------------------------------------: | :--------------------------------------------------------------: | :--------------------------------------------------------------: |
 |            [안현태](https://github.com/UpstageAILab)             |            [문서연](https://github.com/UpstageAILab)             |            [손은혜](https://github.com/UpstageAILab)             |            [정용재](https://github.com/UpstageAILab)             |            주예령](https://github.com/UpstageAILab)             |
-|                            팀장, 담당 역할       구조 및 배포 설계
+|                            팀장, 담당 역할       
+구조 및 배포 설계
 데이터 파이프라인 관리                      |                            담당 역할      아이디어 제공
 (주제선정, 프론트화면)
 데이터 적재 및 피처 담당                       |                            담당 역할        프론트엔드 구현 및 배포
