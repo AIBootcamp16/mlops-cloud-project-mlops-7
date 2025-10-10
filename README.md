@@ -27,7 +27,7 @@
 ### 정용재: 
 Orchestrated experiment 와 배치 추론 단계에서 AirflowDAG 구현 수행
 ### 주예령: 
-EDA
+데이터 시각화 / CD pytorch
 
 
 <br>
