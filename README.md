@@ -9,9 +9,8 @@
 - **날씨 쾌적지수 예측 시스템**: 머신러닝을 활용한 날씨 데이터 기반 쾌적도 예측 서비스
 
 ### <작품 소개>
-- **FastAPI + Streamlit**: 실시간 날씨 데이터를 입력받아 쾌적지수(0-10점)를 예측하는 웹 서비스
+- **FastAPI + Streamlit**: 실시간 날씨 데이터를 입력받아 쾌적지수를 예측하는 웹 서비스
 - **AWS S3 모델 저장소**: 최고 성능 모델을 S3에 저장하고 자동으로 로드
-- **Docker 기반**: 완전한 컨테이너화된 MLOps 파이프라인
 
 =======
 - _이번 프로젝트에 대해 소개를 작성해주세요_
@@ -24,24 +23,30 @@
 
 ## 👨‍👩‍👦‍👦 팀 구성원
 
-| ![박패캠](https://avatars.githubusercontent.com/u/156163982?v=4) | ![이패캠](https://avatars.githubusercontent.com/u/156163982?v=4) | ![최패캠](https://avatars.githubusercontent.com/u/156163982?v=4) | ![김패캠](https://avatars.githubusercontent.com/u/156163982?v=4) | ![오패캠](https://avatars.githubusercontent.com/u/156163982?v=4) |
+| ![안현태](https://avatars.githubusercontent.com/u/156163982?v=4) | ![문서연](https://avatars.githubusercontent.com/u/156163982?v=4) | ![손은혜](https://avatars.githubusercontent.com/u/156163982?v=4) | ![정용재](https://avatars.githubusercontent.com/u/156163982?v=4) | ![주예령](https://avatars.githubusercontent.com/u/156163982?v=4) |
 | :--------------------------------------------------------------: | :--------------------------------------------------------------: | :--------------------------------------------------------------: | :--------------------------------------------------------------: | :--------------------------------------------------------------: |
-|            [박패캠](https://github.com/UpstageAILab)             |            [이패캠](https://github.com/UpstageAILab)             |            [최패캠](https://github.com/UpstageAILab)             |            [김패캠](https://github.com/UpstageAILab)             |            [오패캠](https://github.com/UpstageAILab)             |
-|                            팀장, 담당 역할                             |                            담당 역할                             |                            담당 역할                             |                            담당 역할                             |                            담당 역할                             |
+|            [안현태](https://github.com/UpstageAILab)             |            [문서연](https://github.com/UpstageAILab)             |            [손은혜](https://github.com/UpstageAILab)             |            [정용재](https://github.com/UpstageAILab)             |            주예령](https://github.com/UpstageAILab)             |
+|                            팀장, 담당 역할       구조 및 배포 설계
+데이터 파이프라인 관리                      |                            담당 역할      아이디어 제공
+(주제선정, 프론트화면)
+데이터 적재 및 피처 담당                       |                            담당 역할        프론트엔드 구현 및 배포
+백엔드 구현 및 FastAPI 
+모델 학습 및 추론 (WANDB 연동) 
+
+                     |                            담당 역할             Orchestrated experiment 와 배치 추론 단계에서 AirflowDAG 구현 수행                |                            담당 역할        EDA                     |
 
 <br>
 
 ## 🔨 개발 환경 및 기술 스택
-- 주 언어 : _ex) python_
-- 버전 및 이슈관리 : _ex) github_
-- 협업 툴 : _ex) github, notion_
+- 주 언어 :  python, java
+- 버전 및 이슈관리 : github
+- 협업 툴 : github, notion
 
 <br>
 
 ## 📁 프로젝트 구조
 ```
-├── .github/                    # GitHub Actions 워크플로우
-│   └── workflows/
+├── Airflow                     # DAG 관련 
 ├── api/                        # FastAPI 애플리케이션
 │   ├── main.py                 # FastAPI 메인 앱
 │   └── Dockerfile              # FastAPI Dockerfile
@@ -49,11 +54,7 @@
 │   ├── data/                   # 데이터 관련 패키지
 │   ├── models/                 # ML 모델 학습 및 평가 관련 패키지
 │   └── utils/                  # 유틸리티 패키지
-├── tests/                      # 테스트
-├── notebooks/                  # Jupyter 노트북
-│   ├── fonts/                  # ttf 파일 모음 directory
-│   └── notebook_template.ipynb # Jupyter Notebook Template
-├── docs/                       # 문서
+│   └── storage/                # s3 관련 
 ├── .env.example                # 환경 변수 예시
 ├── .dockerignore               # Docker ignore 파일
 ├── .gitignore                  # Git ignore 파일
