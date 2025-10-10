@@ -11,8 +11,6 @@
 - **FastAPI + NEXT.js**: 실시간 날씨 데이터를 입력받아 쾌적지수를 예측하는 웹 서비스
 - **AWS S3 모델 저장소**: 최고 성능 모델을 S3에 저장하고 자동으로 로드
 
-=======
-
 
 ### <작품 소개>
 - 기상청 앱의 일반적인 날씨 정보를 넘어, 출퇴근 시간대에 특화된 쾌적지수를 제공하여 도보·자전거 이용자 등 날씨에 민감한 직장인들이 출근 준비나 퇴근 후 약속 계획을 보다 효율적으로 세울 수 있도록 돕고자 한다. 
@@ -68,25 +66,6 @@ EDA
 ```
 
 
-# 1. main 브랜치로 전환
-git checkout main
-git pull
-
-# 2. 프로덕션 이미지 빌드 (소스코드 포함)
-docker build \
-  --target collector \
-  -t weather-collector:v1.0.0 \
-  -f Dockerfile.multi .
-
-# 3. 테스트
-docker run --env-file .env weather-collector:v1.0.0
-
-# 4. 이미지 레지스트리에 푸시
-docker tag weather-collector:v1.0.0 your-registry/weather-collector:v1.0.0
-docker push your-registry/weather-collector:v1.0.0
-<br>
-
-
 
 ## 💻​ 구현 기능
 - 데이터 수집 및 전처리
@@ -112,8 +91,6 @@ docker push your-registry/weather-collector:v1.0.0
 
 
 
-
-
 <br>
 
 ## 🚨​ 트러블 슈팅
@@ -121,6 +98,11 @@ docker push your-registry/weather-collector:v1.0.0
 
 #### 해결
 -  이 문제는 출퇴근 쾌적 지수를 볼 때는 시간 제약을 둬 마치 예측하는 것처럼 보이게 하는 것으로 해결했다.
+
+### 2. 인스턴스 서버는 띄웠는데 컨테이너 띄우는 과정에서 에러 사항 발생. 
+
+#### 해결
+-  아직 미해결
 
 <br>
 
