@@ -3,8 +3,7 @@
 <br>
 
 ## 💻 프로젝트 소개
-### <프로젝트 소개>
-<<<<<<< HEAD
+
 
 - **날씨 쾌적지수 예측 시스템**: 머신러닝을 활용한 날씨 데이터 기반 쾌적도 예측 서비스
 
@@ -37,7 +36,11 @@ EDA
 <br>
 
 ## 🔨 개발 환경 및 기술 스택
-- 주 언어 :  python, java
+- 언어: 파이썬(백엔드), 자바(프론트)
+- 백엔드와 프론트 연결: FastAPI
+- 데이터 저장: mySQL 및 S3
+- DAG: Apache-AirFlow
+- 모델 트래킹: WANDB
 - 버전 및 이슈관리 : github
 - 협업 툴 : github, notion
 
@@ -60,14 +63,11 @@ EDA
 ├── docker-compose.yml          # Docker Compose file
 ├── pyproject.toml              # 메인 Poetry 설정
 └── README.md                   # 프로젝트 README
-<<<<<<< HEAD
->>>>>>> origin/main2
-=======
->>>>>>> origin/main2
+
 
 ```
 
-<br>
+
 # 1. main 브랜치로 전환
 git checkout main
 git pull
@@ -110,12 +110,7 @@ docker push your-registry/weather-collector:v1.0.0
 ## 프론트 엔드
 <img width="928" height="381" alt="image" src="https://github.com/user-attachments/assets/60ff441e-bb54-41f5-99bc-0237e241ec71" />
 
-## 기술 스택
-- 언어: 파이썬(백엔드), 자바(프론트)
-- 백엔드와 프론트 연결: FastAPI
-- 데이터 저장: mySQL 및 S3
-- DAG: Apache-AirFlow
-- 모델 트래킹: WANDB
+
 
 
 
