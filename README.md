@@ -96,6 +96,17 @@ docker push your-registry/weather-collector:v1.0.0
 ### Vercel에 배포
 <br>
 
+<br>
+# 목표 아키텍처
+<img width="386" height="534" alt="image" src="https://github.com/user-attachments/assets/70f72b48-fc3e-4b5d-85f0-3d393419c959" />
+# 실제 아키텍처
+<img width="311" height="537" alt="image" src="https://github.com/user-attachments/assets/2303e38d-aa07-4fe4-8eeb-2621b9c03303" />
+# 구현한 아키텍처
+<img width="393" height="414" alt="image" src="https://github.com/user-attachments/assets/61282b50-517d-4c59-b150-028bcdc32348" />
+
+
+
+<br>
 
 <br>
 
@@ -107,7 +118,6 @@ docker push your-registry/weather-collector:v1.0.0
 
 <br>
 
-<<<<<<< HEAD
 
 ## 🚀 실행 방법
 
@@ -138,7 +148,6 @@ docker-compose up
 # 컨테이너 내에서 모델 학습
 docker-compose exec api-server python src/models/train.py
 ```
-
 
 
 <br>
